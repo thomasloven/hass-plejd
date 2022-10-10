@@ -1,0 +1,17 @@
+{
+    "title": "Plejd",
+    "config": {
+        "step": {
+            "user": {
+                "title": "Log in to Plejd",
+                "data": {
+                    "username": "Email address",
+                    "password": "Password"
+                }
+            },
+            "picksite": {
+                "title": "Pick your site"
+            }
+        }
+    }
+}

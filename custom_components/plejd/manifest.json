@@ -1,0 +1,16 @@
+{
+    "domain": "plejd",
+    "name": "plejd",
+    "dependencies": ["bluetooth"],
+    "codeowners": [],
+    "requirements": [],
+    "config_flow": true,
+    "version": "0.0.1",
+    "iot_class": "local_push",
+    "bluetooth": [
+        {
+            "service_uuid": "31ba0001-6085-4726-be45-040c957391b5",
+            "connectable": true
+        }
+    ]
+}
