@@ -51,7 +51,7 @@ async def async_setup_entry(hass, config_entry):
         }
     )
 
-    await hass.config_entries.async_forward_entry_setups(config_entry, ["light"])
+    await hass.config_entries.async_forward_entry_setups(config_entry, ["light", "switch"])
 
     async def _ping(now=None):
         if hass.data[DOMAIN]["stopping"]: return
