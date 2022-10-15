@@ -1,6 +1,5 @@
 from aiohttp import ClientSession
 import json
-from collections import namedtuple
 import logging
 
 _LOGGER = logging.getLogger(__name__)
@@ -10,36 +9,6 @@ API_BASE_URL = 'https://cloud.plejd.com'
 API_LOGIN_URL = '/parse/login'
 API_SITE_LIST_URL = '/parse/functions/getSiteList'
 API_SITE_DETAILS_URL = '/parse/functions/getSiteById'
-
-Device = namedtuple("Device", ["model", "type", "dimmable"])
-
-LIGHT = "light"
-SENSOR = "sensor"
-SWITCH = "switch"
-
-HARDWARE_ID = {
-    "0": Device("-unknown-", LIGHT, False),
-    "1": Device("DIM-01", LIGHT, True),
-    "2": Device("DIM-02", LIGHT, True),
-    "3": Device("CTR-01", LIGHT, False),
-    "4": Device("GWY-01", SENSOR, False),
-    "5": Device("LED-10", LIGHT, True),
-    "6": Device("WPH-01", SWITCH, False),
-    "7": Device("REL-01", SWITCH, False),
-    "8": Device("-unknown-", LIGHT, False),
-    "9": Device("-unknown-", LIGHT, False),
-    "10": Device("-unknown-", LIGHT, False),
-    "11": Device("DIM-01", LIGHT, True),
-    "12": Device("-unknown-", LIGHT, False),
-    "13": Device("Generic", LIGHT, False),
-    "14": Device("-unknown-", LIGHT, False),
-    "15": Device("-unknown-", LIGHT, False),
-    "16": Device("-unknown-", LIGHT, False),
-    "17": Device("REL-01", SWITCH, False),
-    "18": Device("REL-02", SWITCH, False),
-    "19": Device("-unknown-", LIGHT, False),
-    "20": Device("SPR-01", SWITCH, False),
-}
 
 
 headers = {
@@ -108,31 +77,29 @@ async def get_devices(**credentials):
             return next((s for s in d if s["deviceId"] == BLE_address), None)
 
         address = site_data["deviceAddress"][BLE_address]
+        dimmable = None
 
         settings = find_deviceId(site_data["outputSettings"])
         if settings is not None:
             outputs = site_data["outputAddress"][BLE_address]
             address = outputs[str(settings["output"])]
 
+        if settings is not None and settings["dimCurve"] == "nonDimmable":
+            dimmable = False
+
         plejdDevice = find_deviceId(site_data["plejdDevices"])
-        deviceType = HARDWARE_ID.get(plejdDevice["hardwareId"], HARDWARE_ID["0"])
-        firmware = plejdDevice["firmware"]["version"]
-
-        dimmable = deviceType.dimmable
-        if settings is not None:
-            dimmable = settings["dimCurve"] != "NonDimmable"
-
         room = next((r for r in site_data["rooms"] if r["roomId"] == device["roomId"]), {})
 
         retval[address] = {
             "address": address,
             "BLE_address": BLE_address,
-            "name": device["title"],
-            "type": deviceType.type,
-            "model": deviceType.model,
-            "dimmable": dimmable,
-            "room": room.get("title"),
-            "firmware": firmware,
+            "data": {
+                "name": device["title"],
+                "hardwareId": plejdDevice["hardwareId"],
+                "dimmable": dimmable,
+                "room": room.get("title"),
+                "firmware": plejdDevice["firmware"]["version"],
+            }
         }
 
     return retval

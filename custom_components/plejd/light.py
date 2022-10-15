@@ -72,7 +72,7 @@ class PlejdLight(LightEntity, CoordinatorEntity):
 
     @property
     def brightness(self):
-        return self._data.get("dim",0)/255
+        return self._data.get("dim",0)
 
     @property
     def supported_color_modes(self):

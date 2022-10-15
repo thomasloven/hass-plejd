@@ -7,6 +7,8 @@ from .mesh import PlejdMesh
 from .api import get_cryptokey, get_devices
 from .plejd_device import PlejdDevice
 
+from .const import PLEJD_SERVICE
+
 _LOGGER = logging.getLogger(__name__)
 
 class PlejdManager:
@@ -58,11 +60,14 @@ class PlejdManager:
         return await self.mesh.ping()
 
     async def disconnect(self):
-        _LOGGER.info("DISCONNECT")
+        _LOGGER.debug("DISCONNECT")
         await self.mesh.disconnect()
 
     async def poll(self):
         await self.mesh.poll()
 
     async def ping(self):
-        return await self.mesh.ping()
+        retval = await self.mesh.ping()
+        if self.mesh.pollonWrite:
+            await self.poll()
+        return retval
