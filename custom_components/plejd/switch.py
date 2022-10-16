@@ -19,8 +19,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             async def updateCallback(data):
                 coordinator.async_set_updated_data(data)
             dev.updateCallback = updateCallback
-            light = PlejdSwitch(coordinator, dev)
-            entities.append(light)
+            switch = PlejdSwitch(coordinator, dev)
+            entities.append(switch)
     async_add_entities(entities, False)
 
 class Coordinator(DataUpdateCoordinator):

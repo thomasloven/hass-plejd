@@ -6,6 +6,7 @@ from homeassistant import config_entries
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 import homeassistant.util.dt as dt_util
+from homeassistant.helpers import device_registry as dr
 
 from . import pyplejd
 
@@ -28,7 +29,21 @@ async def async_setup(hass, config):
 async def async_setup_entry(hass, config_entry):
 
     plejdManager = pyplejd.PlejdManager(config_entry.data)
+
     devices = await plejdManager.get_devices()
+
+    if sum(d.type in ["light", "switch"] for d in devices.values()) == 0:
+        site_data = await plejdManager.get_site_data()
+
+        device_registry = dr.async_get(hass)
+        device_registry.async_get_or_create(
+            config_entry_id=config_entry.entry_id,
+            identifiers={(DOMAIN, config_entry.data["siteId"])},
+            manufacturer="Plejd",
+            name=site_data.get("site", {}).get("title", "Unknown site"),
+            entry_type=dr.DeviceEntryType.SERVICE,
+        )
+
     for dev in devices.values():
         ble_device = bluetooth.async_ble_device_from_address(
             hass, dev.BLE_address, True

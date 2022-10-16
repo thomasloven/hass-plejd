@@ -4,7 +4,7 @@ from datetime import timedelta
 from bleak_retry_connector import close_stale_connections
 
 from .mesh import PlejdMesh
-from .api import get_cryptokey, get_devices
+from .api import get_cryptokey, get_devices, get_site_data
 from .plejd_device import PlejdDevice
 
 from .const import PLEJD_SERVICE
@@ -31,6 +31,9 @@ class PlejdManager:
     @property
     def connected(self):
         return self.mesh is not None and self.mesh.connected
+
+    async def get_site_data(self):
+        return await get_site_data(**self.credentials)
 
     async def get_devices(self):
         devices = await get_devices(**self.credentials)

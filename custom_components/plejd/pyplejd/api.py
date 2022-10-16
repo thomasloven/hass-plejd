@@ -43,13 +43,17 @@ async def _get_site_details(session, siteId):
         #     fp.write(json.dumps(data))
         return data
 
+site_data = None
 async def get_site_data(username, password, siteId):
-    # TODO: Memoize this somehow?
+    global site_data
+    if site_data is not None:
+        return site_data
     async with ClientSession(base_url=API_BASE_URL, headers=headers) as session:
         session_token = await _login(session, username, password)
         _LOGGER.debug("Session token: %s", session_token)
         session.headers["X-Parse-Session-Token"] = session_token
         details = await _get_site_details(session, siteId)
+        site_data = details
         return details
 
 async def get_sites(username, password):

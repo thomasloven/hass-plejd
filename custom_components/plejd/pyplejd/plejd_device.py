@@ -7,10 +7,10 @@ Device = namedtuple("Device", ["model", "type", "dimmable"])
 LIGHT = "light"
 SENSOR = "sensor"
 SWITCH = "switch"
-
+UNKNOWN = "unknown"
 
 HARDWARE_TYPES = {
-    "0": Device("-unknown-", LIGHT, False),
+    "0": Device("-unknown-", UNKNOWN, False),
     "1": Device("DIM-01", LIGHT, True),
     "2": Device("DIM-02", LIGHT, True),
     "3": Device("CTR-01", LIGHT, False),
