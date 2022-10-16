@@ -103,6 +103,8 @@ class PlejdMesh():
         await client.start_notify(PLEJD_LASTDATA, _lastdata)
         await client.start_notify(PLEJD_LIGHTLEVEL, _lightlevel)
         
+        await self.poll()
+
         return True
 
     async def write(self, payload):
