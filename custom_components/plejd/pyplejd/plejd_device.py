@@ -18,7 +18,7 @@ HARDWARE_TYPES = {
     "5": Device("LED-10", LIGHT, True),
     "6": Device("WPH-01", SWITCH, False),
     "7": Device("REL-01", SWITCH, False),
-    "8": Device("SPR-01?", SWITCH, False),
+    "8": Device("SPR-01", SWITCH, False),
     "9": Device("-unknown-", LIGHT, False),
     "10": Device("WRT-01", SWITCH, False),
     "11": Device("DIM-01", LIGHT, True),
