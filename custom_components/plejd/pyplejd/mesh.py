@@ -74,7 +74,7 @@ class PlejdMesh():
             return False
 
         self.client = client
-        self.connected_node = binascii.a2b_hex(address.replace(":", ""))[::-1]
+        self.connected_node = binascii.a2b_hex(address.replace(":", "").replace("-", ""))[::-1]
 
         await asyncio.sleep(2)
 
@@ -149,7 +149,7 @@ class PlejdMesh():
             return False
         try:
             _LOGGER.debug("Authenticating")
-            await self.client.write_gatt_char(PLEJD_AUTH, [0], response=True)
+            await self.client.write_gatt_char(PLEJD_AUTH, b"\0x00", response=True)
             challenge = await self.client.read_gatt_char(PLEJD_AUTH)
             response = auth_response(self.crypto_key, challenge)
             await self.client.write_gatt_char(PLEJD_AUTH, response, response=True)
