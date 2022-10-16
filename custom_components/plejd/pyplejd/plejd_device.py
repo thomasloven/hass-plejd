@@ -8,6 +8,7 @@ LIGHT = "light"
 SENSOR = "sensor"
 SWITCH = "switch"
 
+
 HARDWARE_TYPES = {
     "0": Device("-unknown-", LIGHT, False),
     "1": Device("DIM-01", LIGHT, True),
@@ -17,13 +18,13 @@ HARDWARE_TYPES = {
     "5": Device("LED-10", LIGHT, True),
     "6": Device("WPH-01", SWITCH, False),
     "7": Device("REL-01", SWITCH, False),
-    "8": Device("-unknown-", LIGHT, False),
+    "8": Device("SPR-01?", SWITCH, False),
     "9": Device("-unknown-", LIGHT, False),
-    "10": Device("-unknown-", LIGHT, False),
+    "10": Device("WRT-01", SWITCH, False),
     "11": Device("DIM-01", LIGHT, True),
     "12": Device("-unknown-", LIGHT, False),
     "13": Device("Generic", LIGHT, False),
-    "14": Device("-unknown-", LIGHT, False),
+    "14": Device("DIM-01", LIGHT, True),
     "15": Device("-unknown-", LIGHT, False),
     "16": Device("-unknown-", LIGHT, False),
     "17": Device("REL-01", SWITCH, False),
@@ -66,6 +67,9 @@ class PlejdDevice:
     @property
     def firmware(self):
         return self.data["firmware"]
+    @property
+    def hardwareId(self):
+        return self.data["hardwareId"]
 
     @property
     def type(self):
