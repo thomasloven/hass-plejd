@@ -48,10 +48,10 @@ class PlejdLight(LightEntity, CoordinatorEntity):
             "identifiers": {(DOMAIN, self.device.BLE_address)},
             "name": self.device.name,
             "manufacturer": "Plejd",
-            "model": f"{self.device.model} ({self.device.hardwareId})",
+            "model": {self.device.model},
             #"connections": ???,
             "suggested_area": self.device.room,
-            "sw_version": self.device.firmware,
+            "sw_version": f"{self.device.firmware} ({self.device.hardwareId})",
         }
 
     @property

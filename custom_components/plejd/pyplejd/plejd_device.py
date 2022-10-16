@@ -19,18 +19,15 @@ HARDWARE_TYPES = {
     "6": Device("WPH-01", SWITCH, False),
     "7": Device("REL-01", SWITCH, False),
     "8": Device("SPR-01", SWITCH, False),
-    "9": Device("-unknown-", LIGHT, False),
     "10": Device("WRT-01", SWITCH, False),
     "11": Device("DIM-01", LIGHT, True),
-    "12": Device("-unknown-", LIGHT, False),
     "13": Device("Generic", LIGHT, False),
     "14": Device("DIM-01", LIGHT, True),
-    "15": Device("-unknown-", LIGHT, False),
-    "16": Device("-unknown-", LIGHT, False),
-    "17": Device("REL-01", SWITCH, False),
+    "15": Device("DIM-02", LIGHT, True),
+    "17": Device("REL-01-2P", SWITCH, False),
     "18": Device("REL-02", SWITCH, False),
-    "19": Device("-unknown-", LIGHT, False),
     "20": Device("SPR-01", SWITCH, False),
+    "36": Device("LED-75", LIGHT, True),
 }
 
 class PlejdDevice:
