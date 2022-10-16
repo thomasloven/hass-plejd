@@ -74,7 +74,7 @@ class PlejdMesh():
             return False
 
         self.client = client
-        self.connected_node = binascii.a2b_hex(address.replace(":", ""))[::-1]
+        self.connected_node = binascii.a2b_hex(address.replace(":", "").replace("-", ""))[::-1]
 
         await asyncio.sleep(2)
 
