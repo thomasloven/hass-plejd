@@ -43,6 +43,10 @@ class PlejdDevice:
         self._state = None
         self._dim = None
 
+    def __repr__(self):
+        return f"<PlejdDevice(manager, {self.address}, {self.BLE_address}, {self.data}>"
+        pass
+
     @property
     def available(self):
         return self._state is not None
@@ -104,5 +108,3 @@ class PlejdDevice:
 
     async def turn_off(self):
         await self.manager.mesh.set_state(self.address, False)
-
-    

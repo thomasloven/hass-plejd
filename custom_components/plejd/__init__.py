@@ -15,7 +15,6 @@ _LOGGER = logging.getLogger(__name__)
 DOMAIN = "plejd"
 
 async def async_setup(hass, config):
-    _LOGGER.error("Setting up plejd")
     if not hass.config_entries.async_entries("plejd"):
         hass.async_create_task(
             hass.config_entries.flow.async_init(
@@ -32,6 +31,7 @@ async def async_setup_entry(hass, config_entry):
 
     devices = await plejdManager.get_devices()
 
+    # Add a service entry if there are no devices - just so the user can get diagnostics data
     if sum(d.type in ["light", "switch"] for d in devices.values()) == 0:
         site_data = await plejdManager.get_site_data()
 
@@ -44,13 +44,6 @@ async def async_setup_entry(hass, config_entry):
             entry_type=dr.DeviceEntryType.SERVICE,
         )
 
-    for dev in devices.values():
-        ble_device = bluetooth.async_ble_device_from_address(
-            hass, dev.BLE_address, True
-        )
-        if ble_device:
-            await plejdManager.close_stale(ble_device)
-
     hass.data.setdefault(DOMAIN, {}).update(
         {
             "stopping": False,
@@ -59,8 +52,36 @@ async def async_setup_entry(hass, config_entry):
         }
     )
 
+    # Close any stale connections that may be open
+    for dev in devices.values():
+        ble_device = bluetooth.async_ble_device_from_address(
+            hass, dev.BLE_address, True
+        )
+        if ble_device:
+            await plejdManager.close_stale(ble_device)
+
+    # Search for devices in the mesh
+    def _discovered_plejd(service_info, *_):
+        plejdManager.add_mesh_device(service_info.device)
+    bluetooth.async_register_callback(
+            hass,
+            _discovered_plejd,
+            BluetoothCallbackMatcher(
+                    connectable=True,
+                    service_uuid=pyplejd.const.PLEJD_SERVICE.lower()
+                ),
+            bluetooth.BluetoothScanningMode.PASSIVE
+        )
+
+    # Run through already discovered devices and add plejds to the mesh
+    for service_info in bluetooth.async_discovered_service_info(hass, True):
+        if pyplejd.PLEJD_SERVICE.lower() in service_info.advertisement.service_uuids:
+            plejdManager.add_mesh_device(service_info.device)
+    
+
     await hass.config_entries.async_forward_entry_setups(config_entry, ["light", "switch"])
 
+    # Ping mesh intermittently to keep the connection alive
     async def _ping(now=None):
         if hass.data[DOMAIN]["stopping"]: return
         if not await plejdManager.keepalive():
@@ -72,17 +93,7 @@ async def async_setup_entry(hass, config_entry):
             )
     hass.async_create_task(_ping())
 
-    bluetooth.async_register_callback(
-            hass,
-            plejdManager.discover_plejd,
-            BluetoothCallbackMatcher(
-                    connectable=True,
-                    service_uuid=pyplejd.const.PLEJD_SERVICE.lower()
-                ),
-            bluetooth.BluetoothScanningMode.PASSIVE
-        )
-    
-
+    # Cleanup when Home Assistant stops
     async def _stop(ev):
         hass.data[DOMAIN]["stopping"] = True
         if "ping_timer" in hass.data[DOMAIN]:
@@ -91,13 +102,5 @@ async def async_setup_entry(hass, config_entry):
     config_entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _stop)
     )
-
-    for service_info in bluetooth.async_discovered_service_info(hass, True):
-        if pyplejd.PLEJD_SERVICE.lower() in service_info.advertisement.service_uuids:
-            plejdManager.discover_plejd(service_info)
-
     
     return True
-
-    
-    

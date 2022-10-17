@@ -20,9 +20,12 @@ class PlejdManager:
         self.devices = { }
         self.credentials = credentials
 
-    def discover_plejd(self, service_info, *_):
-        _LOGGER.debug("Adding plejd %s", service_info)
-        self.mesh.add_mesh_node(service_info.device)
+    def add_mesh_device(self, device):
+        _LOGGER.debug("Adding plejd %s", device)
+        for d in self.devices.items():
+            if d.BLE_address.upper() == device.address.replace(":","").replace("-","").upper():
+                return self.mesh.add_mesh_node(device)
+        _LOGGER.debug("Device was not expected in current mesh")
 
     async def close_stale(self, device):
         _LOGGER.info("Closing stale connections for %s", device)
