@@ -68,6 +68,12 @@ class PlejdMesh():
                 client = await establish_connection(BleakClient, plejd, "plejd", _disconnect)
                 address = plejd.address
                 self._connected = True
+                self.client = client
+                _LOGGER.debug("Connected to Plejd mesh")
+                await asyncio.sleep(2)
+                if not await self._authenticate():
+                    await self.disconnect()
+                    continue
                 break
             except (BleakError, asyncio.TimeoutError) as e:
                 _LOGGER.warning("Error connecting to Plejd device: %s", str(e))
@@ -78,16 +84,8 @@ class PlejdMesh():
                 _LOGGER.warning("Failed to connect to plejd mesh - %s", self.mesh_nodes)
             return False
 
-        self.client = client
         self.connected_node = binascii.a2b_hex(address.replace(":", "").replace("-", ""))[::-1]
 
-        _LOGGER.debug("Connected to Plejd mesh")
-        await asyncio.sleep(2)
-
-        if not await self._authenticate():
-            await self.disconnect()
-            return False
-        
         async def _lastdata(_, lastdata):
             self.pollonWrite = False
             data = encrypt_decrypt(self.crypto_key, self.connected_node, lastdata)

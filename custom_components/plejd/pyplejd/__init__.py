@@ -22,10 +22,11 @@ class PlejdManager:
 
     def add_mesh_device(self, device):
         _LOGGER.debug("Adding plejd %s", device)
-        for d in self.devices.values():
-            if d.BLE_address.upper() == device.address.replace(":","").replace("-","").upper():
-                return self.mesh.add_mesh_node(device)
-        _LOGGER.debug("Device was not expected in current mesh")
+        # for d in self.devices.values():
+        #     addr = device.address.replace(":","").replace("-","").upper()
+        #     if d.BLE_address.upper() == addr or addr in device.name:
+        return self.mesh.add_mesh_node(device)
+        # _LOGGER.debug("Device was not expected in current mesh")
 
     async def close_stale(self, device):
         _LOGGER.info("Closing stale connections for %s", device)

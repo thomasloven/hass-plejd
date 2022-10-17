@@ -45,7 +45,7 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, self.device.BLE_address)},
+            "identifiers": {(DOMAIN, f"{self.device.BLE_address}:{self.device.address}")},
             "name": self.device.name,
             "manufacturer": "Plejd",
             "model": self.device.model,
@@ -64,7 +64,7 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
 
     @property
     def unique_id(self):
-        return self.device.BLE_address
+        return f"{self.device.BLE_address}:{self.device.address}"
 
     @property
     def is_on(self):
