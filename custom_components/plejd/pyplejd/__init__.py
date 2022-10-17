@@ -22,7 +22,7 @@ class PlejdManager:
 
     def add_mesh_device(self, device):
         _LOGGER.debug("Adding plejd %s", device)
-        for d in self.devices.items():
+        for d in self.devices.values():
             if d.BLE_address.upper() == device.address.replace(":","").replace("-","").upper():
                 return self.mesh.add_mesh_node(device)
         _LOGGER.debug("Device was not expected in current mesh")
@@ -40,7 +40,7 @@ class PlejdManager:
 
     async def get_devices(self):
         devices = await get_devices(**self.credentials)
-        self.devices = {k: PlejdDevice(self, **v) for (k,v) in devices.values()}
+        self.devices = {k: PlejdDevice(self, **v) for (k,v) in devices.items()}
         _LOGGER.info("Devices")
         _LOGGER.info(self.devices)
         return self.devices
