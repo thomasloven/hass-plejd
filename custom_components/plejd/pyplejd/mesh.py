@@ -55,7 +55,7 @@ class PlejdMesh():
 
         def _disconnect(arg):
             if not self.connected: return
-            _LOGGER.error("_disconnect %s", arg)
+            _LOGGER.debug("_disconnect %s", arg)
             self.client = None
             self._connected = False
             if disconnect_callback:
@@ -73,7 +73,7 @@ class PlejdMesh():
                 _LOGGER.warning("Error connecting to Plejd device: %s", str(e))
         else:
             if len(self.mesh_nodes) == 0:
-                _LOGGER.warning("Failed to connect to plejd mesh - no devices discovered")
+                _LOGGER.debug("Failed to connect to plejd mesh - no devices discovered")
             else:
                 _LOGGER.warning("Failed to connect to plejd mesh - %s", self.mesh_nodes)
             return False
@@ -99,14 +99,16 @@ class PlejdMesh():
 
         async def _lightlevel(_, lightlevel):
             _LOGGER.debug("Received LightLevel %s", lightlevel)
-            deviceState = {
-                "address": int(lightlevel[0]),
-                "state": bool(lightlevel[1]),
-                "dim": int.from_bytes(lightlevel[5:7], "little"),
-            }
-            _LOGGER.debug("Decoded LightLevel %s", deviceState)
-            if self.statecallback and deviceState is not None:
-                await self.statecallback(deviceState)
+            for i in range(0, len(lightlevel), 10):
+                ll = lightlevel[i:i+10]
+                deviceState = {
+                    "address": int(ll[0]),
+                    "state": bool(ll[1]),
+                    "dim": int.from_bytes(ll[5:7], "little"),
+                }
+                _LOGGER.debug("Decoded LightLevel %s", deviceState)
+                if self.statecallback and deviceState is not None:
+                    await self.statecallback(deviceState)
 
         await client.start_notify(PLEJD_LASTDATA, _lastdata)
         await client.start_notify(PLEJD_LIGHTLEVEL, _lightlevel)

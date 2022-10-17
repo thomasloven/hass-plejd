@@ -44,7 +44,7 @@ class PlejdDevice:
         self._dim = None
 
     def __repr__(self):
-        return f"<PlejdDevice(manager, {self.address}, {self.BLE_address}, {self.data}>"
+        return f"<PlejdDevice(<manager>, {self.address}, {self.BLE_address}, {self.data}>"
         pass
 
     @property

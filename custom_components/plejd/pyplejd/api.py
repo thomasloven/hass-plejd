@@ -50,7 +50,6 @@ async def get_site_data(username, password, siteId):
         return site_data
     async with ClientSession(base_url=API_BASE_URL, headers=headers) as session:
         session_token = await _login(session, username, password)
-        _LOGGER.debug("Session token: %s", session_token)
         session.headers["X-Parse-Session-Token"] = session_token
         details = await _get_site_details(session, siteId)
         site_data = details
@@ -59,10 +58,8 @@ async def get_site_data(username, password, siteId):
 async def get_sites(username, password):
     async with ClientSession(base_url=API_BASE_URL, headers=headers) as session:
         session_token = await _login(session, username, password)
-        _LOGGER.debug("Session token: %s", session_token)
         session.headers["X-Parse-Session-Token"] = session_token
         sites = await _get_sites(session)
-        _LOGGER.debug("Sites: %s", sites)
         return sites["result"]
 
 
