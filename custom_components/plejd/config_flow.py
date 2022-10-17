@@ -22,14 +22,12 @@ class PlejdConfigFlow(ConfigFlow, domain="plejd"):
                     }
                 )
             )
-        _LOGGER.info("Log in with %s %s", info["username"], info["password"])
         self.credentials = info
         return await self.async_step_picksite()
 
     async def async_step_picksite(self, info=None):
         if info is None:
             sites = await api.get_sites(self.credentials["username"], self.credentials["password"])
-            _LOGGER.info(sites)
             return self.async_show_form(
                 step_id="picksite",
                 data_schema=vol.Schema(
@@ -48,5 +46,4 @@ class PlejdConfigFlow(ConfigFlow, domain="plejd"):
             "password": self.credentials["password"],
             "siteId": info["site"]
         }
-        _LOGGER.debug("Saving: %s", data)
         return self.async_create_entry(title="Plejd", data=data)

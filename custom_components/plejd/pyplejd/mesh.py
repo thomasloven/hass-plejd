@@ -3,6 +3,7 @@ import binascii
 import logging
 import os
 import struct
+from datetime import datetime
 from bleak import BleakClient, BleakError
 from bleak_retry_connector import establish_connection
 
@@ -48,7 +49,7 @@ class PlejdMesh():
     
     async def connect(self, disconnect_callback=None, key=None):
         await self.disconnect()
-        _LOGGER.info("Trying to connect")
+        _LOGGER.debug("Trying to connect to mesh")
 
         client = None
 
@@ -63,19 +64,24 @@ class PlejdMesh():
         self.mesh_nodes.sort(key = lambda a: a.rssi, reverse = True)
         for plejd in self.mesh_nodes:
             try:
-                _LOGGER.warning("Connecting to %s", plejd)
+                _LOGGER.debug("Connecting to %s", plejd)
                 client = await establish_connection(BleakClient, plejd, "plejd", _disconnect)
                 address = plejd.address
                 self._connected = True
                 break
             except (BleakError, asyncio.TimeoutError) as e:
-                _LOGGER.error("Error connecting to plejd: %s", str(e))
+                _LOGGER.warning("Error connecting to Plejd device: %s", str(e))
         else:
+            if len(self.mesh_nodes) == 0:
+                _LOGGER.warning("Failed to connect to plejd mesh - no devices discovered")
+            else:
+                _LOGGER.warning("Failed to connect to plejd mesh - %s", self.mesh_nodes)
             return False
 
         self.client = client
         self.connected_node = binascii.a2b_hex(address.replace(":", "").replace("-", ""))[::-1]
 
+        _LOGGER.debug("Connected to Plejd mesh")
         await asyncio.sleep(2)
 
         if not await self._authenticate():
@@ -85,18 +91,20 @@ class PlejdMesh():
         async def _lastdata(_, lastdata):
             self.pollonWrite = False
             data = encrypt_decrypt(self.crypto_key, self.connected_node, lastdata)
+            _LOGGER.debug("Received LastData %s", data)
             deviceState = decode_state(data)
-            _LOGGER.debug("Lastdata %s", deviceState)
+            _LOGGER.debug("Decoded LastData %s", deviceState)
             if self.statecallback and deviceState is not None:
                 await self.statecallback(deviceState)
 
         async def _lightlevel(_, lightlevel):
+            _LOGGER.debug("Received LightLevel %s", lightlevel)
             deviceState = {
                 "address": int(lightlevel[0]),
                 "state": bool(lightlevel[1]),
                 "dim": int.from_bytes(lightlevel[5:7], "little"),
             }
-            _LOGGER.debug("Lightlevel %s", deviceState)
+            _LOGGER.debug("Decoded LightLevel %s", deviceState)
             if self.statecallback and deviceState is not None:
                 await self.statecallback(deviceState)
 
@@ -109,10 +117,11 @@ class PlejdMesh():
 
     async def write(self, payload):
         try:
+            _LOGGER.debug("Writing data to Plejd mesh CT: %s", payload)
             data = encrypt_decrypt(self.crypto_key, self.connected_node, payload)
             await self.client.write_gatt_char(PLEJD_DATA, data, response=True)
         except (BleakError, asyncio.TimeoutError) as e:
-            _LOGGER.error("Write failed: %s", str(e))
+            _LOGGER.warning("Plejd mesh write command failed: %s", str(e))
             return False
         return True
 
@@ -135,25 +144,26 @@ class PlejdMesh():
             if (ping[0] + 1) & 0xFF == pong[0]:
                 return True
         except (BleakError, asyncio.TimeoutError) as e:
-            _LOGGER.warning("Error sending ping: %s", str(e))
+            _LOGGER.warning("Plejd mesh keepalive signal failed: %s", str(e))
         self.pollonWrite = True
         return False
 
     async def poll(self):
         if self.client is None:
             return
+        _LOGGER.debug("Polling Plejd mesh for current state")
         await self.client.write_gatt_char(PLEJD_LIGHTLEVEL, b"\x01", response=True)
 
     async def _authenticate(self):
         if self.client is None:
             return False
         try:
-            _LOGGER.debug("Authenticating")
+            _LOGGER.debug("Authenticating to plejd mesh")
             await self.client.write_gatt_char(PLEJD_AUTH, b"\0x00", response=True)
             challenge = await self.client.read_gatt_char(PLEJD_AUTH)
             response = auth_response(self.crypto_key, challenge)
             await self.client.write_gatt_char(PLEJD_AUTH, response, response=True)
-            _LOGGER.debug("Authenticated")
+            _LOGGER.debug("Authenticated successfully")
             return True
         except (BleakError, asyncio.TimeoutError) as e:
             _LOGGER.warning("Plejd authentication failed: %s", str(e))
@@ -166,7 +176,8 @@ def decode_state(data):
     if address == 1 and cmd == b"\x00\x1b":
         _LOGGER.debug("Got time data?")
         ts = struct.unpack_from("<I", data, 5)[0]
-        _LOGGER.debug("Timestamp: %s", ts)
+        dt = datetime.fromtimestamp(ts)
+        _LOGGER.debug("Timestamp: %s (%s)", ts, dt)
         return None
 
     dim, state = None, None
