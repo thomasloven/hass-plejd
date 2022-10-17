@@ -40,7 +40,7 @@ class PlejdManager:
 
     async def get_devices(self):
         devices = await get_devices(**self.credentials)
-        self.devices = {k: PlejdDevice(self, **v) for (k,v) in devices.items()}
+        self.devices = {k: PlejdDevice(self, **v) for (k,v) in devices.values()}
         _LOGGER.info("Devices")
         _LOGGER.info(self.devices)
         return self.devices
