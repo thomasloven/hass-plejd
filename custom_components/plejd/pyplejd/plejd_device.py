@@ -20,10 +20,10 @@ HARDWARE_TYPES = {
     "7": Device("REL-01", SWITCH, False),
     "8": Device("SPR-01", SWITCH, False),
     "10": Device("WRT-01", SWITCH, False),
-    "11": Device("DIM-01", LIGHT, True),
+    "11": Device("DIM-01-2P", LIGHT, True),
     "13": Device("Generic", LIGHT, False),
-    "14": Device("DIM-01", LIGHT, True),
-    "15": Device("DIM-02", LIGHT, True),
+    "14": Device("DIM-01-LC", LIGHT, True),
+    "15": Device("DIM-02-LC", LIGHT, True),
     "17": Device("REL-01-2P", SWITCH, False),
     "18": Device("REL-02", SWITCH, False),
     "20": Device("SPR-01", SWITCH, False),
@@ -44,12 +44,16 @@ class PlejdDevice:
         self._dim = None
 
     @property
+    def available(self):
+        return self._state is not None
+
+    @property
     def state(self):
-        return self._state
+        return self._state if self.available else False
 
     @property
     def dim(self):
-        return self._dim/255
+        return self._dim/255 if self.available else 0
 
     @property
     def BLE_address(self):

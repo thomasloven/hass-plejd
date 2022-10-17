@@ -40,7 +40,7 @@ class PlejdLight(LightEntity, CoordinatorEntity):
 
     @property
     def available(self):
-        return self._data.get("state", None) is not None
+        return self.device.available
 
     @property
     def device_info(self):
@@ -68,11 +68,11 @@ class PlejdLight(LightEntity, CoordinatorEntity):
 
     @property
     def is_on(self):
-        return self._data.get("state")
+        return self.device.state
 
     @property
     def brightness(self):
-        return self._data.get("dim",0)
+        return self.device.dim
 
     @property
     def supported_color_modes(self):
