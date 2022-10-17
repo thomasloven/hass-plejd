@@ -64,7 +64,10 @@ class PlejdManager:
         if not self.mesh.connected:
             if not await self.mesh.connect():
                 return False
-        return await self.mesh.ping()
+        retval = await self.mesh.ping()
+        if retval and self.mesh.pollonWrite:
+            await self.mesh.poll()
+        return retval
 
     async def disconnect(self):
         _LOGGER.debug("DISCONNECT")
