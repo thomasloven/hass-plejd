@@ -1,6 +1,9 @@
 
 from builtins import property
 from collections import namedtuple
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 Device = namedtuple("Device", ["model", "type", "dimmable"])
 
@@ -101,7 +104,7 @@ class PlejdDevice:
             self._dim = dim
         if update:
             if self.updateCallback:
-                await self.updateCallback({"state": self._state, "dim": self._dim})
+                self.updateCallback({"state": self._state, "dim": self._dim})
 
     async def turn_on(self, dim=0):
         await self.manager.mesh.set_state(self.address, True, dim)

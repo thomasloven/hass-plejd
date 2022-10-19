@@ -16,9 +16,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         dev = devices[d]
         if dev.type == "switch":
             coordinator = Coordinator(hass, dev)
-            async def updateCallback(data):
-                coordinator.async_set_updated_data(data)
-            dev.updateCallback = updateCallback
+            dev.updateCallback = coordinator.async_set_updated_data
             switch = PlejdSwitch(coordinator, dev)
             entities.append(switch)
     async_add_entities(entities, False)
@@ -37,10 +35,6 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
     @property
     def _data(self):
         return self.coordinator.data or {}
-
-    @property
-    def available(self):
-        return self._data.get("state", None) is not None
 
     @property
     def device_info(self):

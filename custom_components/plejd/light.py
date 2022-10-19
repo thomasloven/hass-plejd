@@ -16,9 +16,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         dev = devices[d]
         if dev.type == "light":
             coordinator = Coordinator(hass, dev)
-            async def updateCallback(data):
-                coordinator.async_set_updated_data(data)
-            dev.updateCallback = updateCallback
+            dev.updateCallback = coordinator.async_set_updated_data
             light = PlejdLight(coordinator, dev)
             entities.append(light)
     async_add_entities(entities, False)
@@ -37,10 +35,6 @@ class PlejdLight(LightEntity, CoordinatorEntity):
     @property
     def _data(self):
         return self.coordinator.data or {}
-
-    @property
-    def available(self):
-        return self.device.available
 
     @property
     def device_info(self):

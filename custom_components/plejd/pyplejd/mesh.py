@@ -71,8 +71,9 @@ class PlejdMesh():
                 self.client = client
                 _LOGGER.debug("Connected to Plejd mesh")
                 await asyncio.sleep(2)
-                if not await self._authenticate():
-                    await self.disconnect()
+                if not await self._authenticate() or not await self.ping():
+                    await self.client.disconnect()
+                    self._connected = False
                     continue
                 break
             except (BleakError, asyncio.TimeoutError) as e:
@@ -186,6 +187,12 @@ def decode_state(data):
         dim = int.from_bytes(data[6:8], "little")
     elif cmd == b"\x00\x97":
         state = bool(data[5])
+    elif cmd == b"\x00\x16":
+        _LOGGER.debug("A button was pressed")
+        return None
+    else:
+        _LOGGER.debug("Unknown command %s", cmd)
+        return None
 
     return {
         "address": address,

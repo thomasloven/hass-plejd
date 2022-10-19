@@ -43,16 +43,16 @@ async def _get_site_details(session, siteId):
         #     fp.write(json.dumps(data))
         return data
 
-site_data = None
+site_data = {}
 async def get_site_data(username, password, siteId):
     global site_data
-    if site_data is not None:
-        return site_data
+    if site_data.get(siteId) is not None:
+        return site_data.get(siteId)
     async with ClientSession(base_url=API_BASE_URL, headers=headers) as session:
         session_token = await _login(session, username, password)
         session.headers["X-Parse-Session-Token"] = session_token
         details = await _get_site_details(session, siteId)
-        site_data = details
+        site_data[siteId] = details
         return details
 
 async def get_sites(username, password):
@@ -74,13 +74,11 @@ async def get_devices(**credentials):
     for device in site_data["devices"]:
         BLE_address = device["deviceId"]
 
-        def find_deviceId(d):
-            return next((s for s in d if s["deviceId"] == BLE_address), None)
-
         address = site_data["deviceAddress"][BLE_address]
         dimmable = None
 
-        settings = find_deviceId(site_data["outputSettings"])
+        settings = next((s for s in site_data["outputSettings"] 
+            if s["deviceParseId"] == device["objectId"]))
         if settings is not None:
             outputs = site_data["outputAddress"][BLE_address]
             address = outputs[str(settings["output"])]
@@ -88,9 +86,10 @@ async def get_devices(**credentials):
         if settings is not None and settings["dimCurve"] == "nonDimmable":
             dimmable = False
 
-        plejdDevice = find_deviceId(site_data["plejdDevices"])
+        plejdDevice = next((s for s in site_data["plejdDevices"]
+                if s["deviceId"] == BLE_address))
         room = next((r for r in site_data["rooms"] if r["roomId"] == device["roomId"]), {})
-
+        
         retval[address] = {
             "address": address,
             "BLE_address": BLE_address,
