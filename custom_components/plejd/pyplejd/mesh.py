@@ -25,7 +25,10 @@ class PlejdMesh():
         self.statecallback = None
 
     def add_mesh_node(self, device):
-        self.mesh_nodes.append(device)
+        if device not in self.mesh_nodes:
+            self.mesh_nodes.append(device)
+        else:
+            _LOGGER.debug("Plejd already added")
 
     def set_crypto_key(self, key):
         self.crypto_key = binascii.a2b_hex(key.replace("-", ""))
@@ -71,7 +74,7 @@ class PlejdMesh():
                 self.client = client
                 _LOGGER.debug("Connected to Plejd mesh")
                 await asyncio.sleep(2)
-                if not await self._authenticate() or not await self.ping():
+                if not await self._authenticate():
                     await self.client.disconnect()
                     self._connected = False
                     continue
@@ -164,6 +167,9 @@ class PlejdMesh():
             challenge = await self.client.read_gatt_char(PLEJD_AUTH)
             response = auth_response(self.crypto_key, challenge)
             await self.client.write_gatt_char(PLEJD_AUTH, response, response=True)
+            if not await self.ping():
+                _LOGGER.debug("Authenticion failed")
+                return False
             _LOGGER.debug("Authenticated successfully")
             return True
         except (BleakError, asyncio.TimeoutError) as e:

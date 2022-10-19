@@ -28,22 +28,21 @@ class PlejdConfigFlow(ConfigFlow, domain="plejd"):
     async def async_step_picksite(self, info=None):
         if info is None:
             sites = await api.get_sites(self.credentials["username"], self.credentials["password"])
+            self.sites = {site["site"]["siteId"]: site["site"]["title"] for site in sites}
             return self.async_show_form(
                 step_id="picksite",
                 data_schema=vol.Schema(
                     {
-                        vol.Required("site"): vol.In(
-                            {
-                                site["site"]["siteId"]: site["site"]["title"]
-                                for site in sites
-                            }
-                        )
+                        vol.Required("site"): vol.In(self.sites)
                     }
                 )
             )
+
+        siteTitle = self.sites[info["site"]]
         data={
             "username": self.credentials["username"],
             "password": self.credentials["password"],
-            "siteId": info["site"]
+            "siteId": info["site"],
+            "siteTitle": siteTitle,
         }
-        return self.async_create_entry(title="Plejd", data=data)
+        return self.async_create_entry(title=siteTitle, data=data)

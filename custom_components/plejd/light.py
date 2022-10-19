@@ -9,7 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 DOMAIN = "plejd"
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    devices = hass.data[DOMAIN]["devices"]
+    devices = hass.data[DOMAIN]["devices"].get(config_entry.entry_id, [])
 
     entities = []
     for d in devices:

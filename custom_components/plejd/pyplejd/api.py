@@ -44,7 +44,7 @@ async def _get_site_details(session, siteId):
         return data
 
 site_data = {}
-async def get_site_data(username, password, siteId):
+async def get_site_data(username, password, siteId, **_):
     global site_data
     if site_data.get(siteId) is not None:
         return site_data.get(siteId)
@@ -55,7 +55,7 @@ async def get_site_data(username, password, siteId):
         site_data[siteId] = details
         return details
 
-async def get_sites(username, password):
+async def get_sites(username, password, **_):
     async with ClientSession(base_url=API_BASE_URL, headers=headers) as session:
         session_token = await _login(session, username, password)
         session.headers["X-Parse-Session-Token"] = session_token

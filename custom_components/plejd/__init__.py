@@ -47,10 +47,14 @@ async def async_setup_entry(hass, config_entry):
     hass.data.setdefault(DOMAIN, {}).update(
         {
             "stopping": False,
-            "manager": plejdManager,
-            "devices": devices,
         }
     )
+    hass.data[DOMAIN].setdefault("devices", {}).update({
+        config_entry.entry_id: devices
+        })
+    hass.data[DOMAIN].setdefault("manager", {}).update({
+        config_entry.entry_id: plejdManager,
+    })
 
     # Close any stale connections that may be open
     for dev in devices.values():
