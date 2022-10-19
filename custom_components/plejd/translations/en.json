@@ -1,6 +1,9 @@
 {
     "title": "Plejd",
     "config": {
+        "abort": {
+            "single_instance_allowed": "Only one Plejd instance at a time is currently supported."
+        },
         "step": {
             "user": {
                 "title": "Log in to Plejd",
