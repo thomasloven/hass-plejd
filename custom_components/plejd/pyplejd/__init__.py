@@ -4,8 +4,8 @@ from datetime import timedelta
 from bleak_retry_connector import close_stale_connections
 
 from .mesh import PlejdMesh
-from .api import get_cryptokey, get_devices, get_site_data
-from .plejd_device import PlejdDevice
+from .api import get_cryptokey, get_devices, get_site_data, get_scenes
+from .plejd_device import PlejdDevice, PlejdScene
 
 from .const import PLEJD_SERVICE
 
@@ -18,6 +18,7 @@ class PlejdManager:
         self.mesh = PlejdMesh()
         self.mesh.statecallback = self._update_device
         self.devices = { }
+        self.scenes = []
         self.credentials = credentials
 
     def add_mesh_device(self, device):
@@ -45,6 +46,13 @@ class PlejdManager:
         _LOGGER.info("Devices")
         _LOGGER.info(self.devices)
         return self.devices
+
+    async def get_scenes(self):
+        scenes = await get_scenes(**self.credentials)
+        self.scenes = [PlejdScene(self, **s) for s in scenes]
+        _LOGGER.info("Scenes")
+        _LOGGER.info(self.scenes)
+        return self.scenes
 
     async def _update_device(self, deviceState):
         address = deviceState["address"]

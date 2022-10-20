@@ -48,7 +48,6 @@ class PlejdDevice:
 
     def __repr__(self):
         return f"<PlejdDevice(<manager>, {self.address}, {self.BLE_address}, {self.data}>"
-        pass
 
     @property
     def available(self):
@@ -111,3 +110,24 @@ class PlejdDevice:
 
     async def turn_off(self):
         await self.manager.mesh.set_state(self.address, False)
+
+class PlejdScene:
+
+    def __init__(self, manager, index, title):
+        self._manager = manager
+        self._index = index
+        self._title = title
+
+    def __repr__(self):
+        return f"<PlejdScene(<manager>, {self._index}, '{self._title}'>"
+
+    @property
+    def name(self):
+        return self._title
+
+    @property
+    def index(self):
+        return self._index
+
+    async def activate(self):
+        await self._manager.mesh.activate_scene(self._index)

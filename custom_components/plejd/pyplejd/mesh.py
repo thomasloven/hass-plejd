@@ -136,6 +136,13 @@ class PlejdMesh():
             await self.poll()
         return retval
 
+    async def activate_scene(self, index):
+        payload = binascii.a2b_hex(f"0201100021{index:02x}")
+        retval = await self.write(payload)
+        if self.pollonWrite:
+            await self.poll()
+        return retval
+
     async def ping(self):
         if self.client is None:
             return False

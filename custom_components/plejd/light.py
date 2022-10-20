@@ -1,4 +1,3 @@
-from builtins import property
 import logging
 from homeassistant.components.light import LightEntity, ColorMode
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator

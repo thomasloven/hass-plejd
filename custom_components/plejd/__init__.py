@@ -30,6 +30,7 @@ async def async_setup_entry(hass, config_entry):
     plejdManager = pyplejd.PlejdManager(config_entry.data)
 
     devices = await plejdManager.get_devices()
+    scenes = await plejdManager.get_scenes()
 
     # Add a service entry if there are no devices - just so the user can get diagnostics data
     if sum(d.type in ["light", "switch"] for d in devices.values()) == 0:
@@ -51,6 +52,9 @@ async def async_setup_entry(hass, config_entry):
     )
     hass.data[DOMAIN].setdefault("devices", {}).update({
         config_entry.entry_id: devices
+        })
+    hass.data[DOMAIN].setdefault("scenes", {}).update({
+        config_entry.entry_id: scenes
         })
     hass.data[DOMAIN].setdefault("manager", {}).update({
         config_entry.entry_id: plejdManager,
@@ -83,7 +87,9 @@ async def async_setup_entry(hass, config_entry):
             plejdManager.add_mesh_device(service_info.device)
     
 
-    await hass.config_entries.async_forward_entry_setups(config_entry, ["light", "switch"])
+    await hass.config_entries.async_forward_entry_setups(config_entry,
+            ["light", "switch", "button"]
+        )
 
     # Ping mesh intermittently to keep the connection alive
     async def _ping(now=None):

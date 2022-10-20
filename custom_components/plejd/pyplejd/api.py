@@ -103,3 +103,18 @@ async def get_devices(**credentials):
         }
 
     return retval
+
+async def get_scenes(**credentials):
+    site_data = await get_site_data(**credentials)
+    retval = []
+    for scene in site_data["scenes"]:
+        if scene["hiddenFromSceneList"]: continue
+        sceneId = scene["sceneId"]
+        index = site_data["sceneIndex"].get(sceneId)
+
+        retval.append({
+            "index": index,
+            "title": scene["title"],
+        })
+        
+    return retval
