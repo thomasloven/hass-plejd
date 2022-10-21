@@ -2,6 +2,7 @@ import asyncio
 import binascii
 import logging
 import os
+import random
 import struct
 from datetime import datetime
 from bleak import BleakClient, BleakError
@@ -119,12 +120,18 @@ class PlejdMesh():
 
         return True
 
-    async def write(self, payload):
+    async def write(self, payload, retries=5):
         try:
             _LOGGER.debug("Writing data to Plejd mesh CT: %s", payload)
             data = encrypt_decrypt(self.crypto_key, self.connected_node, payload)
             await self.client.write_gatt_char(PLEJD_DATA, data, response=True)
         except (BleakError, asyncio.TimeoutError) as e:
+            if "[org.bluez.Error.InProgress]" in str(e) and retries > 0:
+                _LOGGER.info("Write in progress. Retrying later.")
+                await asyncio.sleep(random.uniform(0.1, 0.3))
+                return await self.write(payload, retries - 1)
+            # TODO: handle org.bluez.Error.NotReady and org.bluez.Error.Failed?
+
             _LOGGER.warning("Plejd mesh write command failed: %s", str(e))
             return False
         return True
