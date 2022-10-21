@@ -39,7 +39,7 @@ class PlejdDevice:
         self.manager = manager
         self.address = address
         self._BLE_address = BLE_address
-        self.data = data #{name, hardwareId, dimmable, room, firmware}
+        self.data = data #{name, hardwareId, dimmable, outputType, room, firmware}
 
         self.updateCallback = None
 
@@ -80,7 +80,7 @@ class PlejdDevice:
 
     @property
     def type(self):
-        return self.hardware_data.type
+        return self.data.get("outputType") or self.hardware_data.type
     @property
     def model(self):
         return self.hardware_data.model

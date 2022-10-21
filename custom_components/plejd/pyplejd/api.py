@@ -89,7 +89,7 @@ async def get_devices(**credentials):
         plejdDevice = next((s for s in site_data["plejdDevices"]
                 if s["deviceId"] == BLE_address))
         room = next((r for r in site_data["rooms"] if r["roomId"] == device["roomId"]), {})
-        
+
         retval[address] = {
             "address": address,
             "BLE_address": BLE_address,
@@ -97,12 +97,20 @@ async def get_devices(**credentials):
                 "name": device["title"],
                 "hardwareId": plejdDevice["hardwareId"],
                 "dimmable": dimmable,
+                "outputType": convertType(device.get("outputType")),
                 "room": room.get("title"),
                 "firmware": plejdDevice["firmware"]["version"],
             }
         }
 
     return retval
+
+def convertType(outputType):
+    if (outputType == "LIGHT"):
+        return "light"
+    elif (outputType == "RELAY"):
+        return "switch"
+    return None
 
 async def get_scenes(**credentials):
     site_data = await get_site_data(**credentials)
