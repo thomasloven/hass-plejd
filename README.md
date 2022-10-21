@@ -37,7 +37,7 @@ I've pulled inspiration from all of them.
 | | | |
 |---|---|---|
 |[hassio-plejd](https://github.com/icanos/hassio-plejd) | [@icanos](https://github.com/icanos) | Works only with Home Assistant OS.<br> Requires exclusive access to the Bluetooth dongle.<br> Does not support Bluetooth Proxy. |
-|[plejd2mqtt](https://github.com/thomasloven/plejd2mqtt) | [@thomasloven](https://github.com/thomasloven) | Relies on MQTT for communication.<br> Requires exclusive access to the Bluetooth dongle.<br> Does not support Bluetooth Proxy.<br> Does not support switches or scenes. |
+|[plejd2mqtt](https://github.com/thomasloven/plejd2mqtt) | [@thomasloven](https://github.com/thomasloven) | Somewhat outdated stand-alone version of the above.<br> Relies on MQTT for communication.<br> Requires exclusive access to the Bluetooth dongle.<br> Does not support Bluetooth Proxy.<br> Does not support switches or scenes. |
 |[ha-plejd](https://github.com/klali/ha-plejd) | [@klali](https://github.com/klali) | Does not communicate with the Plejd API and therefore requires you to extract the cryptokey and device data from the Plejd app somehow.<br> No auto discovery.<br> Requires exclusive access to the Bluetooth dongle.<br> Does not support Bluetooth Proxy.  |
 | [homey-plejd](https://github.com/emilohman/homey-plejd) | [@emilohman](https://github.com/emilohman) | For Homey |
 | [homebridge-plejd](https://github.com/blommegard/homebridge-plejd) | [@blommegard](https://github.com/blommegard) | For Homebridge |
