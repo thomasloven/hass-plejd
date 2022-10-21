@@ -8,6 +8,7 @@ I do not guarantee it will work or even that it will not harm your system. I don
 ## Installation for testing
 
 - Make sure you have a working Bluetooth integration in Home Assistant (a bluetooth proxy should work too)
+- Make sure you have no other plejd custom components or add-ons running.
 - Put the `plejd` directory in your `<config>/custom_components`.
 - Restart Home Assistant
 - Hopefully, your Plejd mesh will be auto discovered and you should see a message popping up in your integrations page.
