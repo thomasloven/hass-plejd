@@ -50,7 +50,7 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
 
     @property
     def available(self):
-        return self.dev.available
+        return self.device.available
 
     @property
     def has_entity_name(self):

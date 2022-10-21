@@ -78,7 +78,7 @@ async def get_devices(**credentials):
         dimmable = None
 
         settings = next((s for s in site_data["outputSettings"] 
-            if s["deviceParseId"] == device["objectId"]))
+            if s["deviceParseId"] == device["objectId"]), None)
         if settings is not None:
             outputs = site_data["outputAddress"][BLE_address]
             address = outputs[str(settings["output"])]
