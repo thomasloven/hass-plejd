@@ -36,6 +36,10 @@ class PlejdLight(LightEntity, CoordinatorEntity):
         return self.coordinator.data or {}
 
     @property
+    def available(self):
+        return self.device.available
+
+    @property
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, f"{self.device.BLE_address}:{self.device.address}")},

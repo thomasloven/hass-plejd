@@ -51,7 +51,7 @@ class PlejdDevice:
 
     @property
     def available(self):
-        return self._state is not None
+        return self.manager.connected and self._state is not None
 
     @property
     def state(self):
@@ -128,6 +128,10 @@ class PlejdScene:
     @property
     def index(self):
         return self._index
+
+    @property
+    def available(self):
+        return self._manager.connected
 
     async def activate(self):
         await self._manager.mesh.activate_scene(self._index)
