@@ -30,7 +30,7 @@ class PlejdManager:
         # _LOGGER.debug("Device was not expected in current mesh")
 
     async def close_stale(self, device):
-        _LOGGER.info("Closing stale connections for %s", device)
+        _LOGGER.debug("Closing stale connections for %s", device)
         await close_stale_connections(device)
 
     @property
@@ -43,15 +43,15 @@ class PlejdManager:
     async def get_devices(self):
         devices = await get_devices(**self.credentials)
         self.devices = {k: PlejdDevice(self, **v) for (k,v) in devices.items()}
-        _LOGGER.info("Devices")
-        _LOGGER.info(self.devices)
+        _LOGGER.debug("Devices")
+        _LOGGER.debug(self.devices)
         return self.devices
 
     async def get_scenes(self):
         scenes = await get_scenes(**self.credentials)
         self.scenes = [PlejdScene(self, **s) for s in scenes]
-        _LOGGER.info("Scenes")
-        _LOGGER.info(self.scenes)
+        _LOGGER.debug("Scenes")
+        _LOGGER.debug(self.scenes)
         return self.scenes
 
     async def _update_device(self, deviceState):
