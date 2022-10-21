@@ -31,9 +31,9 @@ class PlejdSceneButton(ButtonEntity):
             #"connections": ???,
         }
 
-    @property
-    def available(self):
-        return self.device.available
+    # @property
+    # def available(self):
+    #     return self.device.available
 
     @property
     def has_entity_name(self):
