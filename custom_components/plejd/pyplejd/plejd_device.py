@@ -114,14 +114,15 @@ class PlejdDevice:
 
 class PlejdScene:
 
-    def __init__(self, manager, hass, index, title):
+    def __init__(self, manager, hass, index, title, visible):
         self._manager = manager
         self._hass = hass
         self._index = index
         self._title = title
+        self._visible = visible
 
     def __repr__(self):
-        return f"<PlejdScene(<manager>, <hass>, {self._index}, '{self._title}'>"
+        return f"<PlejdScene(<manager>, <hass>, {self._index}, '{self._title}', {self._visible}>"
 
     @property
     def name(self):
@@ -130,6 +131,10 @@ class PlejdScene:
     @property
     def index(self):
         return self._index
+
+    @property
+    def visible(self):
+        return self._visible
 
     @property
     def available(self):
