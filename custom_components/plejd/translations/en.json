@@ -2,7 +2,8 @@
     "title": "Plejd",
     "config": {
         "abort": {
-            "single_instance_allowed": "Only one Plejd instance at a time is currently supported."
+            "single_instance_allowed": "Only one Plejd instance at a time is currently supported.",
+            "no_device_discovered": "No plejd bluetooth mesh was found."
         },
         "step": {
             "user": {

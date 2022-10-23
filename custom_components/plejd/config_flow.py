@@ -10,11 +10,20 @@ class PlejdConfigFlow(ConfigFlow, domain="plejd"):
 
     VERSION = 1
 
+    def __init__(self):
+        self._discovered = False
+
+    async def async_step_bluetooth(self, discovery_info):
+        self._discovered = True
+        return await self.async_step_user()
+
     async def async_step_user(self, info=None):
 
         if info is None:
             if self._async_current_entries():
                 return self.async_abort(reason="single_instance_allowed")
+            if not self._discovered:
+                return self.async_abort(reason="no_device_discovered")
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
