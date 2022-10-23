@@ -144,5 +144,4 @@ class PlejdScene:
             "name": self.name,
             "state": "on" if state else "off",
         }
-        _LOGGER.debug("Sending event " + str(data))
         self._hass.bus.fire("plejd_scene_event", data)
