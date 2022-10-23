@@ -13,12 +13,13 @@ _LOGGER = logging.getLogger(__name__)
 
 class PlejdManager:
 
-    def __init__(self, credentials):
+    def __init__(self, hass, credentials):
+        self.hass = hass
         self.credentials = credentials
         self.mesh = PlejdMesh()
         self.mesh.statecallback = self._update_device
         self.devices = { }
-        self.scenes = []
+        self.scenes = { }
         self.credentials = credentials
 
     def add_mesh_device(self, device):
@@ -42,21 +43,24 @@ class PlejdManager:
 
     async def get_devices(self):
         devices = await get_devices(**self.credentials)
-        self.devices = {k: PlejdDevice(self, **v) for (k,v) in devices.items()}
+        self.devices = {k: PlejdDevice(self, self.hass, **v) for (k,v) in devices.items()}
         _LOGGER.debug("Devices")
         _LOGGER.debug(self.devices)
         return self.devices
 
     async def get_scenes(self):
         scenes = await get_scenes(**self.credentials)
-        self.scenes = [PlejdScene(self, **s) for s in scenes]
+        self.scenes = {k: PlejdScene(self, self.hass, **v) for (k, v) in scenes.items()}
         _LOGGER.debug("Scenes")
         _LOGGER.debug(self.scenes)
         return self.scenes
 
     async def _update_device(self, deviceState):
-        address = deviceState["address"]
-        if address in self.devices:
+        address = deviceState.get("address")
+        sceneIndex = deviceState.get("sceneIndex")
+        if sceneIndex and sceneIndex in self.scenes:
+            self.scenes[sceneIndex].new_state(deviceState["state"])
+        if address and address in self.devices:
             await self.devices[address].new_state(deviceState["state"], deviceState["dim"])
 
     @property

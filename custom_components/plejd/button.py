@@ -7,7 +7,7 @@ _LOGGER = logging.getLogger(__name__)
 DOMAIN = "plejd"
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    scenes = hass.data[DOMAIN]["scenes"].get(config_entry.entry_id, [])
+    scenes = hass.data[DOMAIN]["scenes"].get(config_entry.entry_id, []).values()
 
     entities = []
     for s in scenes:

@@ -94,7 +94,7 @@ class PlejdMesh():
             self.pollonWrite = False
             data = encrypt_decrypt(self.crypto_key, self.connected_node, lastdata)
             _LOGGER.debug("Received LastData %s", data.hex())
-            deviceState = decode_state(data)
+            deviceState = decode_message(data)
             _LOGGER.debug("Decoded LastData %s", deviceState)
             if self.statecallback and deviceState is not None:
                 await self.statecallback(deviceState)
@@ -184,22 +184,29 @@ class PlejdMesh():
             return False
 
 
-def decode_state(data):
+def decode_message(data):
     address = int(data[0])
     cmd = data[3:5]
     if address == 1 and cmd == b"\x00\x1b":
-        _LOGGER.debug("Got time data?")
+        _LOGGER.debug("Got time data")
         ts = struct.unpack_from("<I", data, 5)[0]
         dt = datetime.fromtimestamp(ts)
         _LOGGER.debug("Timestamp: %s (%s)", ts, dt)
         return None
-
-    dim, state = None, None
+    if address == 0 and cmd == b"\x00\x21":
+        sceneIndex = data[5] % 128
+        state = data[5] < 128
+        _LOGGER.debug(f"id: {sceneIndex} state: {state}")
+        return {
+            "sceneIndex": sceneIndex,
+            "state": state,
+        }
     if cmd == b"\x00\xc8" or cmd == b"\x00\x98":
         state = bool(data[5])
         dim = int.from_bytes(data[6:8], "little")
     elif cmd == b"\x00\x97":
         state = bool(data[5])
+        dim = None
     elif cmd == b"\x00\x16":
         _LOGGER.debug("A button was pressed")
         return None

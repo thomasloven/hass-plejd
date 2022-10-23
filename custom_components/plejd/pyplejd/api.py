@@ -114,15 +114,15 @@ def convertType(outputType):
 
 async def get_scenes(**credentials):
     site_data = await get_site_data(**credentials)
-    retval = []
+    retval = {}
     for scene in site_data["scenes"]:
         if scene["hiddenFromSceneList"]: continue
         sceneId = scene["sceneId"]
         index = site_data["sceneIndex"].get(sceneId)
 
-        retval.append({
+        retval[index] = {
             "index": index,
             "title": scene["title"],
-        })
+        }
         
     return retval

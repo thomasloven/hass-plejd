@@ -27,7 +27,7 @@ async def async_setup(hass, config):
 
 async def async_setup_entry(hass, config_entry):
 
-    plejdManager = pyplejd.PlejdManager(config_entry.data)
+    plejdManager = pyplejd.PlejdManager(hass, config_entry.data)
 
     devices = await plejdManager.get_devices()
     scenes = await plejdManager.get_scenes()

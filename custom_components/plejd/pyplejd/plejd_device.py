@@ -35,8 +35,9 @@ HARDWARE_TYPES = {
 
 class PlejdDevice:
 
-    def __init__(self, manager, address, BLE_address, data):
+    def __init__(self, manager, hass, address, BLE_address, data):
         self.manager = manager
+        self.hass = hass
         self.address = address
         self._BLE_address = BLE_address
         self.data = data #{name, hardwareId, dimmable, outputType, room, firmware}
@@ -47,7 +48,7 @@ class PlejdDevice:
         self._dim = None
 
     def __repr__(self):
-        return f"<PlejdDevice(<manager>, {self.address}, {self.BLE_address}, {self.data}>"
+        return f"<PlejdDevice(<manager>, <hass>, {self.address}, {self.BLE_address}, {self.data}>"
 
     @property
     def available(self):
@@ -113,13 +114,14 @@ class PlejdDevice:
 
 class PlejdScene:
 
-    def __init__(self, manager, index, title):
+    def __init__(self, manager, hass, index, title):
         self._manager = manager
+        self._hass = hass
         self._index = index
         self._title = title
 
     def __repr__(self):
-        return f"<PlejdScene(<manager>, {self._index}, '{self._title}'>"
+        return f"<PlejdScene(<manager>, <hass>, {self._index}, '{self._title}'>"
 
     @property
     def name(self):
@@ -135,3 +137,12 @@ class PlejdScene:
 
     async def activate(self):
         await self._manager.mesh.activate_scene(self._index)
+
+    def new_state(self, state):
+        data = {
+            "index": self.index,
+            "name": self.name,
+            "state": "on" if state else "off",
+        }
+        _LOGGER.debug("Sending event " + str(data))
+        self._hass.bus.fire("plejd_scene_event", data)
