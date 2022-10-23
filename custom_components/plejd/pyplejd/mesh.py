@@ -93,14 +93,14 @@ class PlejdMesh():
         async def _lastdata(_, lastdata):
             self.pollonWrite = False
             data = encrypt_decrypt(self.crypto_key, self.connected_node, lastdata)
-            _LOGGER.debug("Received LastData %s", data)
+            _LOGGER.debug("Received LastData %s", data.hex())
             deviceState = decode_state(data)
             _LOGGER.debug("Decoded LastData %s", deviceState)
             if self.statecallback and deviceState is not None:
                 await self.statecallback(deviceState)
 
         async def _lightlevel(_, lightlevel):
-            _LOGGER.debug("Received LightLevel %s", lightlevel)
+            _LOGGER.debug("Received LightLevel %s", lightlevel.hex())
             for i in range(0, len(lightlevel), 10):
                 ll = lightlevel[i:i+10]
                 deviceState = {
@@ -121,7 +121,7 @@ class PlejdMesh():
 
     async def write(self, payload):
         try:
-            _LOGGER.debug("Writing data to Plejd mesh CT: %s", payload)
+            _LOGGER.debug("Writing data to Plejd mesh CT: %s", payload.hex())
             data = encrypt_decrypt(self.crypto_key, self.connected_node, payload)
             await self.client.write_gatt_char(PLEJD_DATA, data, response=True)
         except (BleakError, asyncio.TimeoutError) as e:
