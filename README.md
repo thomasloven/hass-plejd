@@ -16,7 +16,7 @@ I do not guarantee it will work or even that it will not harm your system. I don
 - Hopefully, your Plejd mesh will be auto discovered and you should see a message popping up in your integrations page.
 - Log in with the credentials you use in the Plejd app when prompted (email address and password)
 
-- An alternate method for installation is to add this repo (`thomaslowen/hass_plejd`) as a custom repository in HACS, add the integration from HACS, restart Home Assistant and continue as above
+- An alternate method for installation is to add this repo (`thomasloven/hass_plejd`) as a custom repository in HACS, add the integration from HACS, restart Home Assistant and continue as above
 
 ## Getting more debug information
 
