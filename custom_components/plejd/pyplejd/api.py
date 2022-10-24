@@ -84,11 +84,14 @@ async def get_devices(**credentials):
             outputs = site_data["outputAddress"][BLE_address]
             address = outputs[str(settings["output"])]
 
-        if settings is not None and settings.get("dimCurve") is not None:
-            if settings.get("dimCurve") == "nonDimmable":
-                dimmable = False
-            else:
-                dimmable = True
+        if settings is not None:
+            if settings.get("dimCurve") is not None:
+                if settings.get("dimCurve") == "nonDimmable":
+                    dimmable = False
+                else:
+                    dimmable = True
+            if settings.get("predefinedLoad",{}).get("loadType") == "No load":
+                continue
 
         plejdDevice = next((s for s in site_data["plejdDevices"]
                 if s["deviceId"] == BLE_address), None)
