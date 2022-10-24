@@ -44,7 +44,7 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, f"{self.device.BLE_address}")},
-            "name": f"{self.device.room} {self.device.model}",
+            "name": f"Plejd {self.device.model}",
             "manufacturer": "Plejd",
             "model": self.device.model,
             #"connections": ???,

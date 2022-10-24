@@ -17,6 +17,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(entities, False)
 
 class PlejdSceneButton(ButtonEntity):
+    _attr_has_entity_name = True
 
     def __init__(self, device, entry_id):
         super().__init__()
@@ -26,8 +27,8 @@ class PlejdSceneButton(ButtonEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, f"{self.entry_id}:{self.device.index}")},
-            "name": self.device.name,
+            "identifiers": {(DOMAIN, f"{self.entry_id}")},
+            "name": "Plejd Scene",
             "manufacturer": "Plejd",
             #"connections": ???,
         }
@@ -42,7 +43,7 @@ class PlejdSceneButton(ButtonEntity):
     
     @property
     def name(self):
-        return None
+        return self.device.name
 
     @property
     def unique_id(self):
