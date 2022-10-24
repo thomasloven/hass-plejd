@@ -86,7 +86,9 @@ class PlejdDevice:
         return self.hardware_data.model
     @property
     def dimmable(self):
-        return self.hardware_data.dimmable and self.data["dimmable"] != False
+        if self.data["dimmable"] is not None:
+            return self.data["dimmable"]
+        return self.hardware_data.dimmable
     
     @property
     def hardware_data(self):
