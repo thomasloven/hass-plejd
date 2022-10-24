@@ -8,11 +8,12 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 import homeassistant.util.dt as dt_util
 from homeassistant.helpers import device_registry as dr
 
+from .const import DOMAIN
+
 from . import pyplejd
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "plejd"
 
 async def async_setup(hass, config):
     if not hass.config_entries.async_entries("plejd"):
@@ -33,7 +34,7 @@ async def async_setup_entry(hass, config_entry):
     scenes = await plejdManager.get_scenes()
 
     # Add a service entry if there are no devices - just so the user can get diagnostics data
-    if sum(d.type in ["light", "switch"] for d in devices.values()) == 0:
+    if sum(d.type in [pyplejd.LIGHT, pyplejd.SWITCH] for d in devices.values()) == 0:
         site_data = await plejdManager.get_site_data()
 
         device_registry = dr.async_get(hass)

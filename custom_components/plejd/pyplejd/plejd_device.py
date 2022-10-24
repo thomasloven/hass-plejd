@@ -2,15 +2,11 @@
 from builtins import property
 from collections import namedtuple
 import logging
+from .const import LIGHT, SENSOR, SWITCH, UNKNOWN
 
 _LOGGER = logging.getLogger(__name__)
 
 Device = namedtuple("Device", ["model", "type", "dimmable"])
-
-LIGHT = "light"
-SENSOR = "sensor"
-SWITCH = "switch"
-UNKNOWN = "unknown"
 
 HARDWARE_TYPES = {
     "0": Device("-unknown-", UNKNOWN, False),

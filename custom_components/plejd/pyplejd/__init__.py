@@ -7,7 +7,7 @@ from .mesh import PlejdMesh
 from .api import get_cryptokey, get_devices, get_site_data, get_scenes
 from .plejd_device import PlejdDevice, PlejdScene
 
-from .const import PLEJD_SERVICE
+from .const import PLEJD_SERVICE, LIGHT, SWITCH
 
 _LOGGER = logging.getLogger(__name__)
 

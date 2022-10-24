@@ -3,10 +3,11 @@ import logging
 from homeassistant.config_entries import ConfigFlow
 
 from .pyplejd import api
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-class PlejdConfigFlow(ConfigFlow, domain="plejd"):
+class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 

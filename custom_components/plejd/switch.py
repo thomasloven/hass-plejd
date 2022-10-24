@@ -3,10 +3,11 @@ import logging
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
+from . import pyplejd
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "plejd"
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     devices = hass.data[DOMAIN]["devices"].get(config_entry.entry_id, [])
@@ -14,7 +15,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
     for d in devices:
         dev = devices[d]
-        if dev.type == "switch":
+        if dev.type == pyplejd.SWITCH:
             coordinator = Coordinator(hass, dev)
             dev.updateCallback = coordinator.async_set_updated_data
             switch = PlejdSwitch(coordinator, dev)
