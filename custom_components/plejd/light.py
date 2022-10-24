@@ -26,6 +26,8 @@ class Coordinator(DataUpdateCoordinator):
         self.device = device
 
 class PlejdLight(LightEntity, CoordinatorEntity):
+    _attr_has_entity_name = True
+
     def __init__(self, coordinator, device):
         CoordinatorEntity.__init__(self, coordinator)
         LightEntity.__init__(self)
@@ -42,22 +44,18 @@ class PlejdLight(LightEntity, CoordinatorEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, f"{self.device.BLE_address}:{self.device.address}")},
-            "name": self.device.name,
+            "identifiers": {(DOMAIN, f"{self.device.BLE_address}")},
+            "name": f"{self.device.room} {self.device.model}",
             "manufacturer": "Plejd",
             "model": {self.device.model},
             #"connections": ???,
             "suggested_area": self.device.room,
             "sw_version": f"{self.device.firmware} ({self.device.hardwareId})",
         }
-
-    @property
-    def has_entity_name(self):
-        return True
     
     @property
     def name(self):
-        return None
+        return self.device.name
 
     @property
     def unique_id(self):
