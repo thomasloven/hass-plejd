@@ -132,8 +132,7 @@ class PlejdMesh():
     async def set_state(self, address, state, dim=0):
         payload = encode_state(address, state, dim)
         retval = await self.write(payload)
-        if self.pollonWrite:
-            await self.poll()
+        await self.poll()
         return retval
 
     async def activate_scene(self, index):

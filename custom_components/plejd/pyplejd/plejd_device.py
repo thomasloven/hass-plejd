@@ -2,15 +2,11 @@
 from builtins import property
 from collections import namedtuple
 import logging
+from .const import LIGHT, SENSOR, SWITCH, UNKNOWN
 
 _LOGGER = logging.getLogger(__name__)
 
 Device = namedtuple("Device", ["model", "type", "dimmable"])
-
-LIGHT = "light"
-SENSOR = "sensor"
-SWITCH = "switch"
-UNKNOWN = "unknown"
 
 HARDWARE_TYPES = {
     "0": Device("-unknown-", UNKNOWN, False),
@@ -87,7 +83,9 @@ class PlejdDevice:
         return self.hardware_data.model
     @property
     def dimmable(self):
-        return self.hardware_data.dimmable and self.data["dimmable"] != False
+        if self.data["dimmable"] is not None:
+            return self.data["dimmable"]
+        return self.hardware_data.dimmable
     
     @property
     def hardware_data(self):
