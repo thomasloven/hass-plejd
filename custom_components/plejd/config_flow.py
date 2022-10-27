@@ -1,6 +1,7 @@
 import voluptuous as vol
 import logging
 from homeassistant.config_entries import ConfigFlow
+from homeassistant.components import bluetooth
 
 from .pyplejd import api
 from .const import DOMAIN
@@ -23,6 +24,8 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
         if info is None:
             if self._async_current_entries():
                 return self.async_abort(reason="single_instance_allowed")
+            if not bluetooth.async_scanner_count(self.hass, connectable=True):
+                return self.async_abort(reason="bluetooth_not_available")
             if not self._discovered:
                 return self.async_abort(reason="no_device_discovered")
             return self.async_show_form(

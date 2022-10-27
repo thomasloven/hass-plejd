@@ -2,8 +2,9 @@
     "title": "Plejd",
     "config": {
         "abort": {
-            "single_instance_allowed": "Only one Plejd instance at a time is currently supported.",
-            "no_device_discovered": "No plejd bluetooth mesh was found."
+            "single_instance_allowed": "Only one Plejd configuration at a time is currently supported.",
+            "no_device_discovered": "No plejd bluetooth mesh was found.",
+            "bluetooth_not_available": "At least one Bluetooth adapter or remote must be configured to use Plejd."
         },
         "step": {
             "user": {
