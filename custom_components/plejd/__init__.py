@@ -2,9 +2,11 @@ import logging
 
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant import config_entries
 from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 import homeassistant.util.dt as dt_util
 from homeassistant.helpers import device_registry as dr
 
@@ -14,6 +16,7 @@ from . import pyplejd
 
 _LOGGER = logging.getLogger(__name__)
 
+PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.BUTTON]
 
 async def async_setup(hass, config):
     if not hass.config_entries.async_entries("plejd"):
@@ -86,11 +89,9 @@ async def async_setup_entry(hass, config_entry):
     for service_info in bluetooth.async_discovered_service_info(hass, True):
         if pyplejd.PLEJD_SERVICE.lower() in service_info.advertisement.service_uuids:
             plejdManager.add_mesh_device(service_info.device)
-    
 
-    await hass.config_entries.async_forward_entry_setups(config_entry,
-            ["light", "switch", "button"]
-        )
+
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     # Ping mesh intermittently to keep the connection alive
     async def _ping(now=None):
@@ -110,8 +111,22 @@ async def async_setup_entry(hass, config_entry):
         if "ping_timer" in hass.data[DOMAIN]:
             hass.data[DOMAIN]["ping_timer"]()
         await plejdManager.disconnect()
+
     config_entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _stop)
     )
-    
+
     return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    if unload_ok:
+        hass.data[DOMAIN].pop("devices")
+        hass.data[DOMAIN].pop("scenes")
+        await hass.data[DOMAIN]["manager"][entry.entry_id].disconnect()
+        hass.data[DOMAIN].pop("manager")
+
+    return unload_ok
