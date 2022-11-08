@@ -57,7 +57,7 @@ class PlejdManager:
     async def _update_device(self, deviceState):
         address = deviceState["address"]
         if address in self.devices:
-            await self.devices[address].new_state(deviceState["state"], deviceState["dim"])
+            await self.devices[address].new_state(deviceState.get("state"), deviceState.get("dim", 0))
 
     @property
     def keepalive_interval(self):
