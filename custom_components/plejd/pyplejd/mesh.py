@@ -23,6 +23,10 @@ class PlejdMesh():
 
         self.pollonWrite = True
         self.statecallback = None
+        self.scenecallback = None
+        self.buttoncallback = None
+
+        self._ble_lock = asyncio.Lock()
 
     def add_mesh_node(self, device):
         if device not in self.mesh_nodes:
@@ -73,7 +77,6 @@ class PlejdMesh():
                 self._connected = True
                 self.client = client
                 _LOGGER.debug("Connected to Plejd mesh")
-                await asyncio.sleep(2)
                 if not await self._authenticate():
                     await self.client.disconnect()
                     self._connected = False
@@ -96,8 +99,14 @@ class PlejdMesh():
             _LOGGER.debug("Received LastData %s", data.hex())
             deviceState = decode_message(data)
             _LOGGER.debug("Decoded LastData %s", deviceState)
-            if self.statecallback and deviceState is not None:
+            if deviceState is None:
+                return
+            if self.statecallback and "state" in deviceState:
                 await self.statecallback(deviceState)
+            if self.scenecallback and "scene" in deviceState:
+                await self.scenecallback(deviceState)
+            if self.buttoncallback and "button" in deviceState:
+                await self.buttoncallback(deviceState)
 
         async def _lightlevel(_, lightlevel):
             _LOGGER.debug("Received LightLevel %s", lightlevel.hex())
@@ -121,9 +130,11 @@ class PlejdMesh():
 
     async def write(self, payload):
         try:
-            _LOGGER.debug("Writing data to Plejd mesh CT: %s", payload.hex())
-            data = encrypt_decrypt(self.crypto_key, self.connected_node, payload)
-            await self.client.write_gatt_char(PLEJD_DATA, data, response=True)
+            # TODO:
+            async with self._ble_lock:
+                _LOGGER.debug("Writing data to Plejd mesh CT: %s", payload.hex())
+                data = encrypt_decrypt(self.crypto_key, self.connected_node, payload)
+                await self.client.write_gatt_char(PLEJD_DATA, data, response=True)
         except (BleakError, asyncio.TimeoutError) as e:
             _LOGGER.warning("Plejd mesh write command failed: %s", str(e))
             return False
@@ -132,7 +143,8 @@ class PlejdMesh():
     async def set_state(self, address, state, dim=0):
         payload = encode_state(address, state, dim)
         retval = await self.write(payload)
-        await self.poll()
+        if self.pollonWrite:
+            await self.poll()
         return retval
 
     async def activate_scene(self, index):
@@ -143,6 +155,10 @@ class PlejdMesh():
         return retval
 
     async def ping(self):
+        async with self._ble_lock:
+            return await self._ping()
+                
+    async def _ping(self):
         if self.client is None:
             return False
         try:
@@ -162,62 +178,80 @@ class PlejdMesh():
         if self.client is None:
             return
         _LOGGER.debug("Polling Plejd mesh for current state")
-        await self.client.write_gatt_char(PLEJD_LIGHTLEVEL, b"\x01", response=True)
+        async with self._ble_lock:
+            await self.client.write_gatt_char(PLEJD_LIGHTLEVEL, b"\x01", response=True)
 
     async def _authenticate(self):
         if self.client is None:
             return False
         try:
-            _LOGGER.debug("Authenticating to plejd mesh")
-            await self.client.write_gatt_char(PLEJD_AUTH, b"\0x00", response=True)
-            challenge = await self.client.read_gatt_char(PLEJD_AUTH)
-            response = auth_response(self.crypto_key, challenge)
-            await self.client.write_gatt_char(PLEJD_AUTH, response, response=True)
-            if not await self.ping():
-                _LOGGER.debug("Authenticion failed")
-                return False
-            _LOGGER.debug("Authenticated successfully")
-            return True
+            async with self._ble_lock:
+                _LOGGER.debug("Authenticating to plejd mesh")
+                await self.client.write_gatt_char(PLEJD_AUTH, b"\0x00", response=True)
+                challenge = await self.client.read_gatt_char(PLEJD_AUTH)
+                response = auth_response(self.crypto_key, challenge)
+                await self.client.write_gatt_char(PLEJD_AUTH, response, response=True)
+                if not await self._ping():
+                    _LOGGER.debug("Authenticion failed")
+                    return False
+                _LOGGER.debug("Authenticated successfully")
+                return True
         except (BleakError, asyncio.TimeoutError) as e:
             _LOGGER.warning("Plejd authentication failed: %s", str(e))
-            return False
+        return False
 
 
 def decode_message(data):
     address = int(data[0])
+    cmdtype = data[1:3]
+    if not cmdtype == b"\x01\x10":
+        _LOGGER.debug("Got non-command data: %s", cmdtype)
+        return None
     cmd = data[3:5]
+
+    if address == 0:
+        # Broadcast
+        if cmd == b"\x00\x21":
+            # Scene triggered
+            sceneIndex = data[5] % 128
+            state = data[5] < 128
+            _LOGGER.debug(f"id: {sceneIndex} state: {state}")
+            return {
+                "sceneIndex": sceneIndex,
+                "state": state,
+            }
+        return None
     if address == 1 and cmd == b"\x00\x1b":
         _LOGGER.debug("Got time data")
         ts = struct.unpack_from("<I", data, 5)[0]
         dt = datetime.fromtimestamp(ts)
         _LOGGER.debug("Timestamp: %s (%s)", ts, dt)
         return None
-    if address == 0 and cmd == b"\x00\x21":
-        sceneIndex = data[5] % 128
-        state = data[5] < 128
-        _LOGGER.debug(f"id: {sceneIndex} state: {state}")
-        return {
-            "sceneIndex": sceneIndex,
-            "state": state,
-        }
+    # if address == 2:
+    #     # Scene update?
+    #     pass
+
+    retval = {"address": address}
+
     if cmd == b"\x00\xc8" or cmd == b"\x00\x98":
-        state = bool(data[5])
-        dim = int.from_bytes(data[6:8], "little")
+        retval["state"] = bool(data[5])
+        retval["dim"] = int.from_bytes(data[6:8], "little")        
     elif cmd == b"\x00\x97":
-        state = bool(data[5])
-        dim = None
+        retval["state"] = bool(data[5])
+        retval["dim"] = None
     elif cmd == b"\x00\x16":
-        _LOGGER.debug("A button was pressed")
-        return None
+        retval["address"] = int(data[5])
+        retval["button"] = int(data[6])
+        _LOGGER.info("Button pressed: %s", retval)
+    elif cmd == b"\x00\x21":
+        del retval["address"]
+        retval["scene"] = int(data[5])
+        _LOGGER.info("Scene triggered: %s", retval)
     else:
         _LOGGER.debug("Unknown command %s", cmd)
         return None
 
-    return {
-        "address": address,
-        "state": state,
-        "dim": dim,
-    }
+    return retval
 
 
 def encode_state(address, state, dim):

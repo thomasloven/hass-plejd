@@ -2,7 +2,7 @@
     "domain": "plejd",
     "name": "Plejd",
     "dependencies": ["bluetooth"],
-    "codeowners": [],
+    "codeowners": ["@thomasloven"],
     "requirements": [],
     "config_flow": true,
     "version": "0.0.4",

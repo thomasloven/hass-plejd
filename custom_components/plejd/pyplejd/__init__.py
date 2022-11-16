@@ -59,9 +59,9 @@ class PlejdManager:
         address = deviceState.get("address")
         sceneIndex = deviceState.get("sceneIndex")
         if sceneIndex and sceneIndex in self.scenes:
-            self.scenes[sceneIndex].new_state(deviceState["state"])
+            self.scenes[sceneIndex].new_state(deviceState.get("state"))
         if address and address in self.devices:
-            await self.devices[address].new_state(deviceState["state"], deviceState["dim"])
+            await self.devices[address].new_state(deviceState.get("state"), deviceState.get("dim", 0))
 
     @property
     def keepalive_interval(self):
