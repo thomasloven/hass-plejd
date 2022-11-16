@@ -238,7 +238,6 @@ def decode_message(data):
         retval["dim"] = int.from_bytes(data[6:8], "little")        
     elif cmd == b"\x00\x97":
         retval["state"] = bool(data[5])
-        retval["dim"] = None
     elif cmd == b"\x00\x16":
         retval["address"] = int(data[5])
         retval["button"] = int(data[6])
