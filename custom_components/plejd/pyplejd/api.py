@@ -86,7 +86,7 @@ async def get_devices(**credentials):
 
         if settings is not None:
             if settings.get("dimCurve") is not None:
-                if settings.get("dimCurve") == "nonDimmable":
+                if settings.get("dimCurve") in ["nonDimmable", "RelayNormal"]:
                     dimmable = False
                 else:
                     dimmable = True
