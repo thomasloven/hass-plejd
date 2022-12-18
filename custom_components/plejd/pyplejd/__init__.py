@@ -13,8 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class PlejdManager:
 
-    def __init__(self, hass, credentials):
-        self.hass = hass
+    def __init__(self, credentials):
         self.credentials = credentials
         self.mesh = PlejdMesh()
         self.mesh.statecallback = self._update_device
@@ -43,14 +42,14 @@ class PlejdManager:
 
     async def get_devices(self):
         devices = await get_devices(**self.credentials)
-        self.devices = {k: PlejdDevice(self, self.hass, **v) for (k,v) in devices.items()}
+        self.devices = {k: PlejdDevice(self, **v) for (k,v) in devices.items()}
         _LOGGER.debug("Devices")
         _LOGGER.debug(self.devices)
         return self.devices
 
     async def get_scenes(self):
         scenes = await get_scenes(**self.credentials)
-        self.scenes = {k: PlejdScene(self, self.hass, **v) for (k, v) in scenes.items()}
+        self.scenes = {k: PlejdScene(self, **v) for (k, v) in scenes.items()}
         _LOGGER.debug("Scenes")
         _LOGGER.debug(self.scenes)
         return self.scenes
