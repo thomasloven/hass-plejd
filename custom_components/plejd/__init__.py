@@ -1,8 +1,12 @@
 import logging
 
+from home_assistant_bluetooth.models import BluetoothServiceInfoBleak
+
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 import homeassistant.util.dt as dt_util
@@ -15,7 +19,7 @@ from . import pyplejd
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass, config):
+async def async_setup(hass: HomeAssistant, config):
     if not hass.config_entries.async_entries("plejd"):
         hass.async_create_task(
             hass.config_entries.flow.async_init(
@@ -26,7 +30,7 @@ async def async_setup(hass, config):
     return True
 
 
-async def async_setup_entry(hass, config_entry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     plejdManager = pyplejd.PlejdManager(config_entry.data)
 
@@ -70,8 +74,8 @@ async def async_setup_entry(hass, config_entry):
             await plejdManager.close_stale(ble_device)
 
     # Search for devices in the mesh
-    def _discovered_plejd(service_info, *_):
-        plejdManager.add_mesh_device(service_info.device)
+    def _discovered_plejd(service_info: BluetoothServiceInfoBleak, *_):
+        plejdManager.add_mesh_device(service_info.device, service_info.rssi)
     bluetooth.async_register_callback(
             hass,
             _discovered_plejd,
@@ -85,7 +89,7 @@ async def async_setup_entry(hass, config_entry):
     # Run through already discovered devices and add plejds to the mesh
     for service_info in bluetooth.async_discovered_service_info(hass, True):
         if pyplejd.PLEJD_SERVICE.lower() in service_info.advertisement.service_uuids:
-            plejdManager.add_mesh_device(service_info.device)
+            plejdManager.add_mesh_device(service_info.device, service_info.rssi)
     
 
     await hass.config_entries.async_forward_entry_setups(config_entry,

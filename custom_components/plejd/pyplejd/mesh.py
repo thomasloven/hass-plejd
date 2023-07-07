@@ -6,7 +6,9 @@ import struct
 from datetime import datetime
 from bleak import BleakClient, BleakError
 from bleak_retry_connector import establish_connection
+from bleak.backends.device import BLEDevice
 
+from .ble_device import BLEDeviceWithRssi
 from .const import PLEJD_AUTH, PLEJD_LASTDATA, PLEJD_LIGHTLEVEL, PLEJD_PING, PLEJD_DATA
 from .crypto import auth_response, encrypt_decrypt
 
@@ -28,7 +30,8 @@ class PlejdMesh():
 
         self._ble_lock = asyncio.Lock()
 
-    def add_mesh_node(self, device):
+    def add_mesh_node(self, ble_device: BLEDevice, rssi: int):
+        device = BLEDeviceWithRssi(ble_device, rssi)
         if device not in self.mesh_nodes:
             self.mesh_nodes.append(device)
         else:
@@ -58,8 +61,6 @@ class PlejdMesh():
         await self.disconnect()
         _LOGGER.debug("Trying to connect to mesh")
 
-        client = None
-
         def _disconnect(arg):
             if not self.connected: return
             _LOGGER.debug("_disconnect %s", arg)
@@ -72,8 +73,8 @@ class PlejdMesh():
         for plejd in self.mesh_nodes:
             try:
                 _LOGGER.debug("Connecting to %s", plejd)
-                client = await establish_connection(BleakClient, plejd, "plejd", _disconnect)
-                address = plejd.address
+                client = await establish_connection(BleakClient, plejd.device, "plejd", _disconnect)
+                address = plejd.device.address
                 self._connected = True
                 self.client = client
                 _LOGGER.debug("Connected to Plejd mesh")
