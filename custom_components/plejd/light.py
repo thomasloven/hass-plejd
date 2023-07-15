@@ -1,6 +1,9 @@
 import logging
 from homeassistant.components.light import LightEntity, ColorMode
-from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
 from . import pyplejd
 from .const import DOMAIN
@@ -21,13 +24,16 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             entities.append(light)
     async_add_entities(entities, False)
 
+
 class Coordinator(DataUpdateCoordinator):
     def __init__(self, hass, device):
         super().__init__(hass, _LOGGER, name="Plejd Coordinator")
         self.device = device
 
+
 class PlejdLight(LightEntity, CoordinatorEntity):
     _attr_has_entity_name = True
+    _attr_name = None
 
     def __init__(self, coordinator, device):
         CoordinatorEntity.__init__(self, coordinator)
@@ -49,11 +55,11 @@ class PlejdLight(LightEntity, CoordinatorEntity):
             "name": self.device.name,
             "manufacturer": "Plejd",
             "model": self.device.model,
-            #"connections": ???,
+            # "connections": ???,
             "suggested_area": self.device.room,
             "sw_version": f"{self.device.firmware} ({self.device.hardwareId})",
         }
-    
+
     @property
     def unique_id(self):
         return f"{self.device.BLE_address}:{self.device.address}"
@@ -85,5 +91,3 @@ class PlejdLight(LightEntity, CoordinatorEntity):
     async def async_turn_off(self, **_):
         await self.device.turn_off()
         pass
-
-    

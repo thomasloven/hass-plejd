@@ -3,7 +3,7 @@
     "name": "Plejd",
     "dependencies": ["bluetooth_adapters"],
     "codeowners": ["@thomasloven"],
-    "requirements": [],
+    "requirements": ["pyplejd"],
     "config_flow": true,
     "version": "0.0.4",
     "iot_class": "local_push",

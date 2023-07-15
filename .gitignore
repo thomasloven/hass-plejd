@@ -1,7 +1,10 @@
 /*
 /*/
 !.gitignore
+!.gitmodules
 !hacs.json
 !custom_components/
 **/__pycache__/
 !README.md
+!pyplejd
+!.vscode/
