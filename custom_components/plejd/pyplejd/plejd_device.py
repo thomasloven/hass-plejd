@@ -55,7 +55,7 @@ class PlejdDevice:
 
     @property
     def dim(self):
-        return self._dim/255 if self._dim else 0
+        return self._dim/256 if self._dim else 0
 
     @property
     def BLE_address(self):

@@ -23,7 +23,7 @@ class PlejdMesh():
         self.crypto_key = None
         self.mesh_nodes = []
 
-        self.pollonWrite = True
+        self.pollonWrite = True # TODO: Deprecate this
         self.statecallback = None
         self.scenecallback = None
         self.buttoncallback = None
