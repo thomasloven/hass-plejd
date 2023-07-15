@@ -14,3 +14,8 @@ class BLEDeviceWithRssi:
 
     def __repr__(self):
         return self.device.__repr__()
+
+    def __eq__(self, other):
+        if isinstance(other, BLEDeviceWithRssi):
+            return self.device == other.device
+        return False
