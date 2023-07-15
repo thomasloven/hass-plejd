@@ -1,0 +1,31 @@
+{
+    "name": "hass-plejd Dev",
+    "image": "thomasloven/hass-custom-devcontainer",
+    "postCreateCommand": "sudo -E container setup-dev",
+    "containerEnv": {
+      "DEVCONTAINER": "1"
+    },
+    "forwardPorts": [8123],
+    "mounts": [
+      "source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind",
+      "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/config/pyplejd,type=bind"
+    ],
+    "extensions": [
+      "github.vscode-pull-request-github",
+      "esbenp.prettier-vscode",
+      "spmeesseman.vscode-taskexplorer",
+      "ms-python.python"
+    ],
+    "settings": {
+      "files.eol": "\n",
+      "editor.tabSize": 2,
+      "editor.formatOnPaste": false,
+      "editor.formatOnSave": true,
+      "editor.formatOnType": true,
+      "files.trimTrailingWhitespace": true,
+      "python.linting.pylintEnabled": false,
+      "python.linting.enabled": true,
+      "python.formatting.provider": "black"
+    },
+    "runArgs": ["--network=host"]
+}
