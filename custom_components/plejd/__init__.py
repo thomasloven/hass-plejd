@@ -79,8 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     # Search for devices in the mesh
     def _discovered_plejd(service_info: BluetoothServiceInfoBleak, *_):
         plejdManager.add_mesh_device(service_info.device, service_info.rssi)
-    bluetooth.async_register_callback(
-      config_entry.async_on_unload(
+    config_entry.async_on_unload(
         bluetooth.async_register_callback(
             hass,
             _discovered_plejd,
