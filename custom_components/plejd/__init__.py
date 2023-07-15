@@ -4,11 +4,13 @@ from home_assistant_bluetooth.models import BluetoothServiceInfoBleak
 
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 import homeassistant.util.dt as dt_util
 from homeassistant.helpers import device_registry as dr
 
@@ -18,6 +20,7 @@ from . import pyplejd
 
 _LOGGER = logging.getLogger(__name__)
 
+PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.BUTTON]
 
 async def async_setup(hass: HomeAssistant, config):
     if not hass.config_entries.async_entries("plejd"):
@@ -77,6 +80,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     def _discovered_plejd(service_info: BluetoothServiceInfoBleak, *_):
         plejdManager.add_mesh_device(service_info.device, service_info.rssi)
     bluetooth.async_register_callback(
+      config_entry.async_on_unload(
+        bluetooth.async_register_callback(
             hass,
             _discovered_plejd,
             BluetoothCallbackMatcher(
@@ -85,6 +90,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 ),
             bluetooth.BluetoothScanningMode.PASSIVE
         )
+    )
 
     # Run through already discovered devices and add plejds to the mesh
     for service_info in bluetooth.async_discovered_service_info(hass, True):
@@ -92,13 +98,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             plejdManager.add_mesh_device(service_info.device, service_info.rssi)
     
 
-    await hass.config_entries.async_forward_entry_setups(config_entry,
-            ["light", "switch", "button"]
-        )
+
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     # Ping mesh intermittently to keep the connection alive
     async def _ping(now=None):
-        if hass.data[DOMAIN]["stopping"]: return
+        if hass.data[DOMAIN].get("stopping"): return
         if not await plejdManager.keepalive():
             _LOGGER.debug("Ping failed")
         hass.data[DOMAIN]["ping_timer"] = async_track_point_in_utc_time(
@@ -111,11 +116,33 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     # Cleanup when Home Assistant stops
     async def _stop(ev):
         hass.data[DOMAIN]["stopping"] = True
-        if "ping_timer" in hass.data[DOMAIN]:
+        if hass.data[DOMAIN]["ping_timer"]:
             hass.data[DOMAIN]["ping_timer"]()
+            hass.data[DOMAIN]["ping_timer"] = None
         await plejdManager.disconnect()
+
     config_entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _stop)
     )
-    
+
     return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    if unload_ok:
+        if hass.data[DOMAIN]["ping_timer"]:
+            hass.data[DOMAIN]["ping_timer"]()
+            hass.data[DOMAIN]["ping_timer"] = None
+        await hass.data[DOMAIN]["manager"][entry.entry_id].disconnect()
+
+        for block in ["devices", "scenes", "manager"]:
+            hass.data[DOMAIN][block].pop(entry.entry_id)
+            if not hass.data[DOMAIN][block]:
+                hass.data[DOMAIN].pop(block)
+        hass.data[DOMAIN].pop("ping_timer")
+        hass.data[DOMAIN].pop("stopping")
+
+    return unload_ok

@@ -46,7 +46,7 @@ class PlejdLight(LightEntity, CoordinatorEntity):
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, f"{self.device.BLE_address}")},
-            "name": f"Plejd {self.device.model}",
+            "name": self.device.name,
             "manufacturer": "Plejd",
             "model": self.device.model,
             #"connections": ???,
@@ -54,10 +54,6 @@ class PlejdLight(LightEntity, CoordinatorEntity):
             "sw_version": f"{self.device.firmware} ({self.device.hardwareId})",
         }
     
-    @property
-    def name(self):
-        return self.device.name
-
     @property
     def unique_id(self):
         return f"{self.device.BLE_address}:{self.device.address}"

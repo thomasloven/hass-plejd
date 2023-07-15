@@ -44,7 +44,7 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, f"{self.device.BLE_address}")},
-            "name": f"Plejd {self.device.model}",
+            "name": self.device.name,
             "manufacturer": "Plejd",
             "model": self.device.model,
             #"connections": ???,
@@ -56,10 +56,6 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
     def available(self):
         return self.device.available
     
-    @property
-    def name(self):
-        return self.device.name
-
     @property
     def unique_id(self):
         return f"{self.device.BLE_address}:{self.device.address}"

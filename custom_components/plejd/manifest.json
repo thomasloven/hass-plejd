@@ -1,7 +1,7 @@
 {
     "domain": "plejd",
     "name": "Plejd",
-    "dependencies": ["bluetooth"],
+    "dependencies": ["bluetooth_adapters"],
     "codeowners": ["@thomasloven"],
     "requirements": [],
     "config_flow": true,
