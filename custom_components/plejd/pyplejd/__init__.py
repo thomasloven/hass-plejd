@@ -19,14 +19,13 @@ class PlejdManager:
         self.mesh.statecallback = self._update_device
         self.devices = { }
         self.scenes = []
-        self.credentials = credentials
 
-    def add_mesh_device(self, device):
+    def add_mesh_device(self, device, rssi):
         _LOGGER.debug("Adding plejd %s", device)
         # for d in self.devices.values():
         #     addr = device.address.replace(":","").replace("-","").upper()
         #     if d.BLE_address.upper() == addr or addr in device.name:
-        return self.mesh.add_mesh_node(device)
+        return self.mesh.add_mesh_node(device, rssi)
         # _LOGGER.debug("Device was not expected in current mesh")
 
     async def close_stale(self, device):
