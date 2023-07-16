@@ -25,8 +25,8 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="single_instance_allowed")
             if not bluetooth.async_scanner_count(self.hass, connectable=True):
                 return self.async_abort(reason="bluetooth_not_available")
-            if not self._discovered:
-                return self.async_abort(reason="no_device_discovered")
+            # if not self._discovered:
+            #     return self.async_abort(reason="no_device_discovered")
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
@@ -48,6 +48,9 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
                 step_id="picksite",
                 data_schema=vol.Schema({vol.Required("site"): vol.In(self.sites)}),
             )
+
+        await self.async_set_unique_id(info["site"])
+        self._abort_if_unique_id_configured()
 
         siteTitle = self.sites[info["site"]]
         data = {

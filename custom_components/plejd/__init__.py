@@ -21,17 +21,6 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.BUTTON]
 
 
-async def async_setup(hass: HomeAssistant, config):
-    if not hass.config_entries.async_entries("plejd"):
-        hass.async_create_task(
-            hass.config_entries.flow.async_init(
-                "plejd", context={"source": config_entries.SOURCE_IMPORT}, data={}
-            )
-        )
-
-    return True
-
-
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     plejdManager = pyplejd.PlejdManager(config_entry.data)
 

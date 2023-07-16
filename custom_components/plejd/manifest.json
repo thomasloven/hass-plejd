@@ -1,16 +1,23 @@
 {
-    "domain": "plejd",
-    "name": "Plejd",
-    "dependencies": ["bluetooth_adapters"],
-    "codeowners": ["@thomasloven"],
-    "requirements": ["pyplejd"],
-    "config_flow": true,
-    "version": "0.0.4",
-    "iot_class": "local_push",
-    "bluetooth": [
-        {
-            "service_uuid": "31ba0001-6085-4726-be45-040c957391b5",
-            "connectable": true
-        }
-    ]
+  "domain": "plejd",
+  "name": "Plejd",
+  "bluetooth": [
+    {
+      "service_uuid": "31ba0001-6085-4726-be45-040c957391b5",
+      "connectable": true
+    }
+  ],
+  "codeowners": [
+    "@thomasloven"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "bluetooth_adapters"
+  ],
+  "documentation": "https://github.com/thomasloven/hass_plejd",
+  "iot_class": "local_push",
+  "requirements": [
+    "pyplejd"
+  ],
+  "version": "0.0.4"
 }
