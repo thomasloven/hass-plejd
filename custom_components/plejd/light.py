@@ -15,11 +15,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     devices = hass.data[DOMAIN]["devices"].get(config_entry.entry_id, [])
 
     entities = []
-    for d in devices:
-        dev = devices[d]
-        if dev.type == pyplejd.LIGHT:
+    for dev in devices:
+        if dev.outputType == pyplejd.LIGHT:
             coordinator = Coordinator(hass, dev)
-            dev.updateCallback = coordinator.async_set_updated_data
+            dev.subscribe_state(coordinator.async_set_updated_data)
             light = PlejdLight(coordinator, dev)
             entities.append(light)
     async_add_entities(entities, False)
@@ -33,7 +32,6 @@ class Coordinator(DataUpdateCoordinator):
 
 class PlejdLight(LightEntity, CoordinatorEntity):
     _attr_has_entity_name = True
-    _attr_name = None
 
     def __init__(self, coordinator, device):
         CoordinatorEntity.__init__(self, coordinator)
@@ -46,31 +44,35 @@ class PlejdLight(LightEntity, CoordinatorEntity):
 
     @property
     def available(self):
-        return self.device.available
+        return self._data.get("available", False)
 
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, f"{self.device.BLE_address}")},
-            "name": self.device.name,
+            "identifiers": {(DOMAIN, f"{self.device.BLEaddress}")},
+            "name": self.device.room,
             "manufacturer": "Plejd",
-            "model": self.device.model,
+            "model": self.device.hardware,
             # "connections": ???,
             "suggested_area": self.device.room,
-            "sw_version": f"{self.device.firmware} ({self.device.hardwareId})",
+            "sw_version": f"{self.device.firmware}",
         }
 
     @property
+    def name(self):
+        return self.device.name
+
+    @property
     def unique_id(self):
-        return f"{self.device.BLE_address}:{self.device.address}"
+        return f"{self.device.BLEaddress}:{self.device.address}"
 
     @property
     def is_on(self):
-        return self.device.state
+        return self._data.get("state", False)
 
     @property
     def brightness(self):
-        return self.device.dim
+        return self._data.get("dim", 0)
 
     @property
     def supported_color_modes(self):

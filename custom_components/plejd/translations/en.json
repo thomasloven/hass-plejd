@@ -1,23 +1,23 @@
 {
-    "title": "Plejd",
-    "config": {
-        "abort": {
-            "single_instance_allowed": "Only one Plejd configuration at a time is currently supported.",
-            "no_device_discovered": "No plejd bluetooth mesh was found.",
-            "bluetooth_not_available": "At least one Bluetooth adapter or remote must be configured to use Plejd.",
-            "already_configured": "The chosen site has already been configured"
-        },
-        "step": {
-            "user": {
-                "title": "Log in to Plejd",
-                "data": {
-                    "username": "Email address",
-                    "password": "Password"
-                }
-            },
-            "picksite": {
-                "title": "Pick your site"
-            }
+  "title": "Plejd",
+  "config": {
+    "abort": {
+      "single_discovery_only": "Only one configuration can be configured through discovery.",
+      "no_device_discovered": "No plejd bluetooth mesh was found.",
+      "bluetooth_not_available": "At least one Bluetooth adapter or remote must be configured to use Plejd.",
+      "already_configured": "The chosen site has already been configured"
+    },
+    "step": {
+      "user": {
+        "title": "Log in to Plejd",
+        "data": {
+          "username": "Email address",
+          "password": "Password"
         }
+      },
+      "picksite": {
+        "title": "Pick your site"
+      }
     }
+  }
 }

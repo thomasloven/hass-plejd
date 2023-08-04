@@ -23,20 +23,19 @@ PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.BUTTON]
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     plejdManager = pyplejd.PlejdManager(config_entry.data)
+    await plejdManager.init()
 
-    devices = await plejdManager.get_devices()
-    scenes = await plejdManager.get_scenes()
+    devices = plejdManager.devices
+    scenes = plejdManager.scenes
 
     # Add a service entry if there are no devices - just so the user can get diagnostics data
-    if sum(d.type in [pyplejd.LIGHT, pyplejd.SWITCH] for d in devices.values()) == 0:
-        site_data = await plejdManager.get_site_data()
-
+    if sum(d.outputType in [pyplejd.LIGHT, pyplejd.SWITCH] for d in devices) == 0:
         device_registry = dr.async_get(hass)
         device_registry.async_get_or_create(
             config_entry_id=config_entry.entry_id,
             identifiers={(DOMAIN, config_entry.data["siteId"])},
             manufacturer="Plejd",
-            name=site_data.get("site", {}).get("title", "Unknown site"),
+            name=plejdManager.site_data.get("site", {}).get("title", "Unknown site"),
             entry_type=dr.DeviceEntryType.SERVICE,
         )
 
@@ -54,16 +53,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     )
 
     # Close any stale connections that may be open
-    for dev in devices.values():
-        ble_device = bluetooth.async_ble_device_from_address(
-            hass, dev.BLE_address, True
-        )
+    for dev in devices:
+        ble_device = bluetooth.async_ble_device_from_address(hass, dev.BLEaddress, True)
         if ble_device:
             await plejdManager.close_stale(ble_device)
 
     # Search for devices in the mesh
     def _discovered_plejd(service_info: BluetoothServiceInfoBleak, *_):
         plejdManager.add_mesh_device(service_info.device, service_info.rssi)
+        hass.async_create_task(plejdManager.ping())
 
     config_entry.async_on_unload(
         bluetooth.async_register_callback(
@@ -87,10 +85,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     async def _ping(now=None):
         if hass.data[DOMAIN].get("stopping"):
             return
-        if not await plejdManager.keepalive():
+        if not await plejdManager.ping():
             _LOGGER.debug("Ping failed")
         hass.data[DOMAIN]["ping_timer"] = async_track_point_in_utc_time(
-            hass, _ping, dt_util.utcnow() + plejdManager.keepalive_interval
+            hass, _ping, dt_util.utcnow() + plejdManager.ping_interval
         )
 
     hass.async_create_task(_ping())
@@ -98,7 +96,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     # Cleanup when Home Assistant stops
     async def _stop(ev):
         hass.data[DOMAIN]["stopping"] = True
-        if hass.data[DOMAIN]["ping_timer"]:
+        if hass.data[DOMAIN].get("ping_timer", None):
             hass.data[DOMAIN]["ping_timer"]()
             hass.data[DOMAIN]["ping_timer"] = None
         await plejdManager.disconnect()

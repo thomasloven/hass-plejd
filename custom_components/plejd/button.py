@@ -44,7 +44,7 @@ class PlejdSceneButton(ButtonEntity):
 
     @property
     def name(self):
-        return self.device.name
+        return self.device.title
 
     @property
     def unique_id(self):

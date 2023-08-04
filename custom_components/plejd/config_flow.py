@@ -3,7 +3,7 @@ import logging
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.components import bluetooth
 
-from pyplejd import api
+from pyplejd import get_sites
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,16 +17,16 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_bluetooth(self, discovery_info):
         self._discovered = True
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
+        if self._async_in_progress():
+            return self.async_abort(reason="single_instance_allowed")
         return await self.async_step_user()
 
     async def async_step_user(self, info=None):
         if info is None:
-            if self._async_current_entries():
-                return self.async_abort(reason="single_instance_allowed")
             if not bluetooth.async_scanner_count(self.hass, connectable=True):
                 return self.async_abort(reason="bluetooth_not_available")
-            # if not self._discovered:
-            #     return self.async_abort(reason="no_device_discovered")
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
@@ -38,11 +38,12 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_picksite(self, info=None):
         if info is None:
-            sites = await api.get_sites(
+            sites = await get_sites(
                 self.credentials["username"], self.credentials["password"]
             )
             self.sites = {
-                site["site"]["siteId"]: site["site"]["title"] for site in sites
+                site.siteId: f"{site.title} ({site.deviceCount} devices)"
+                for site in sites
             }
             return self.async_show_form(
                 step_id="picksite",

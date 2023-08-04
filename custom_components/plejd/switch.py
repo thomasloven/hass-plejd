@@ -16,11 +16,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     devices = hass.data[DOMAIN]["devices"].get(config_entry.entry_id, [])
 
     entities = []
-    for d in devices:
-        dev = devices[d]
-        if dev.type == pyplejd.SWITCH:
+    for dev in devices:
+        if dev.outputType == pyplejd.SWITCH:
             coordinator = Coordinator(hass, dev)
-            dev.updateCallback = coordinator.async_set_updated_data
+            dev.subscribe_state(coordinator.async_set_updated_data)
             switch = PlejdSwitch(coordinator, dev)
             entities.append(switch)
     async_add_entities(entities, False)
@@ -48,26 +47,26 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, f"{self.device.BLE_address}")},
+            "identifiers": {(DOMAIN, f"{self.device.BLEaddress}")},
             "name": self.device.name,
             "manufacturer": "Plejd",
-            "model": self.device.model,
+            "model": self.device.hardware,
             # "connections": ???,
             "suggested_area": self.device.room,
-            "sw_version": f"{self.device.firmware} ({self.device.hardwareId})",
+            "sw_version": f"{self.device.firmware}",
         }
 
     @property
     def available(self):
-        return self.device.available
+        return self._data.get("available", False)
 
     @property
     def unique_id(self):
-        return f"{self.device.BLE_address}:{self.device.address}"
+        return f"{self.device.BLEaddress}:{self.device.address}"
 
     @property
     def is_on(self):
-        return self._data.get("state")
+        return self._data.get("state", False)
 
     async def async_turn_on(self, **_):
         await self.device.turn_on(None)
