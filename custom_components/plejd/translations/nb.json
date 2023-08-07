@@ -1,0 +1,23 @@
+{
+  "title": "Plejd",
+  "config": {
+    "abort": {
+      "single_discovery_only": "Kun ett system kan settes opp med automatisk oppdagelse.",
+      "no_device_discovered": "Finner ingen Plejd-meshnettverk.",
+      "bluetooth_not_available": "Bluetooth må være satt opp for å bruke Plejd.",
+      "already_configured": "Det valgte systemet er allerede satt opp."
+    },
+    "step": {
+      "user": {
+        "title": "Logg inn hos Plejd",
+        "data": {
+          "username": "E-postadresse",
+          "password": "Passord"
+        }
+      },
+      "picksite": {
+        "title": "Velg system"
+      }
+    }
+  }
+}
