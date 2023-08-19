@@ -6,7 +6,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from . import pyplejd
+import pyplejd
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)

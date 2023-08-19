@@ -18,7 +18,7 @@ import pyplejd
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.BUTTON]
+PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.BUTTON, Platform.EVENT]
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
