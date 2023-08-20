@@ -1,11 +1,8 @@
 import logging
+from homeassistant.core import callback
 from homeassistant.components.light import LightEntity, ColorMode
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
 
-from . import pyplejd
+import pyplejd
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,34 +16,19 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
     for dev in devices:
         if dev.outputType == pyplejd.LIGHT:
-            coordinator = Coordinator(hass, dev)
-            dev.subscribe_state(coordinator.async_set_updated_data)
-            light = PlejdLight(coordinator, dev)
+            light = PlejdLight(dev)
             entities.append(light)
     async_add_entities(entities, False)
 
 
-class Coordinator(DataUpdateCoordinator):
-    def __init__(self, hass, device):
-        super().__init__(hass, _LOGGER, name="Plejd Coordinator")
-        self.device = device
-
-
-class PlejdLight(LightEntity, CoordinatorEntity):
+class PlejdLight(LightEntity):
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, device):
-        CoordinatorEntity.__init__(self, coordinator)
+    def __init__(self, device):
         LightEntity.__init__(self)
         self.device = device
-
-    @property
-    def _data(self):
-        return self.coordinator.data or {}
-
-    @property
-    def available(self):
-        return self._data.get("available", False)
+        self.listener = None
+        self._data = {}
 
     @property
     def device_info(self):
@@ -55,18 +37,27 @@ class PlejdLight(LightEntity, CoordinatorEntity):
             "name": self.device.room,
             "manufacturer": "Plejd",
             "model": self.device.hardware,
-            # "connections": ???,
             "suggested_area": self.device.room,
             "sw_version": f"{self.device.firmware}",
         }
+
+    @property
+    def unique_id(self):
+        return f"{self.device.BLEaddress}:{self.device.address}"
 
     @property
     def name(self):
         return self.device.name
 
     @property
-    def unique_id(self):
-        return f"{self.device.BLEaddress}:{self.device.address}"
+    def supported_color_modes(self):
+        if self.device.dimmable:
+            return {ColorMode.BRIGHTNESS}
+        return {ColorMode.ONOFF}
+
+    @property
+    def available(self):
+        return self._data.get("available", False)
 
     @property
     def is_on(self):
@@ -75,12 +66,6 @@ class PlejdLight(LightEntity, CoordinatorEntity):
     @property
     def brightness(self):
         return self._data.get("dim", 0)
-
-    @property
-    def supported_color_modes(self):
-        if self.device.dimmable:
-            return {ColorMode.BRIGHTNESS}
-        return {ColorMode.ONOFF}
 
     @property
     def color_mode(self):
@@ -95,3 +80,16 @@ class PlejdLight(LightEntity, CoordinatorEntity):
     async def async_turn_off(self, **_):
         await self.device.turn_off()
         pass
+
+    @callback
+    def _handle_state_update(self, data):
+        self._data = data
+        self.async_write_ha_state()
+
+    async def async_added_to_hass(self):
+        self.listener = self.device.subscribe_state(self._handle_state_update)
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self.listener:
+            self.listener()
+        return await super().async_will_remove_from_hass()

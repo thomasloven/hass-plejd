@@ -1,17 +1,14 @@
 from datetime import timedelta
-import logging
+
+import pyplejd
+from pyplejd.interface import PlejdScene, PlejdDevice
 
 from homeassistant.components.event import EventEntity, EventDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.util import Throttle
 
-import pyplejd
-from pyplejd.interface import PlejdScene, PlejdDevice
-
 from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
 
 SCENE_ACTIVATION_RATE_LIMIT = timedelta(seconds=5)
 
@@ -48,15 +45,6 @@ class PlejdSceneEvent(EventEntity):
         self.listener = None
 
     @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, f"{self.entry_id}")},
-            "name": "Plejd Scene",
-            "manufacturer": "Plejd",
-            # "connections": ???,
-        }
-
-    @property
     def name(self):
         return self.device.title + " activated"
 
@@ -82,6 +70,7 @@ class PlejdSceneEvent(EventEntity):
 class PlejdButtonEvent(EventEntity):
     _attr_has_entity_name = True
     _attr_event_types = ["press"]
+    _attr_device_class = EventDeviceClass.BUTTON
 
     def __init__(self, device: PlejdDevice, button_id, entry_id):
         self.device = device
@@ -96,14 +85,13 @@ class PlejdButtonEvent(EventEntity):
             "name": self.device.name,
             "manufacturer": "Plejd",
             "model": self.device.hardware,
-            # "connections": ???,
             "suggested_area": self.device.room,
             "sw_version": f"{self.device.firmware}",
         }
 
     @property
     def name(self):
-        return f"{self.device.name} {self.button_id} pressed"
+        return f"{self.button_id} pressed"
 
     # @Throttle(SCENE_ACTIVATION_RATE_LIMIT)
     @callback

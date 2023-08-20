@@ -1,4 +1,4 @@
-from . import pyplejd
+import pyplejd
 
 
 async def async_get_config_entry_diagnostics(hass, config_entry):

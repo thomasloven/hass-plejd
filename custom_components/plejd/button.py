@@ -1,10 +1,6 @@
-import logging
-
 from homeassistant.components.button import ButtonEntity
 
 from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -26,23 +22,6 @@ class PlejdSceneButton(ButtonEntity):
         super().__init__()
         self.device = device
         self.entry_id = entry_id
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, f"{self.entry_id}")},
-            "name": "Plejd Scene",
-            "manufacturer": "Plejd",
-            # "connections": ???,
-        }
-
-    # @property
-    # def available(self):
-    #     return self.device.available
-
-    @property
-    def has_entity_name(self):
-        return True
 
     @property
     def name(self):

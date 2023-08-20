@@ -1,15 +1,11 @@
 from builtins import property
-import logging
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
-
 import pyplejd
-from .const import DOMAIN
 
-_LOGGER = logging.getLogger(__name__)
+from homeassistant.core import callback
+from homeassistant.components.switch import SwitchEntity
+
+
+from .const import DOMAIN
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -20,31 +16,20 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
     for dev in devices:
         if dev.outputType == pyplejd.SWITCH:
-            coordinator = Coordinator(hass, dev)
-            dev.subscribe_state(coordinator.async_set_updated_data)
-            switch = PlejdSwitch(coordinator, dev)
+            switch = PlejdSwitch(dev)
             entities.append(switch)
     async_add_entities(entities, False)
 
 
-class Coordinator(DataUpdateCoordinator):
-    def __init__(self, hass, device):
-        super().__init__(hass, _LOGGER, name="Plejd Coordinator")
-        self.device = device
-
-
-class PlejdSwitch(SwitchEntity, CoordinatorEntity):
+class PlejdSwitch(SwitchEntity):
     _attr_has_entity_name = True
     _attr_name = None
 
-    def __init__(self, coordinator, device):
-        CoordinatorEntity.__init__(self, coordinator)
+    def __init__(self, device):
         SwitchEntity.__init__(self)
         self.device = device
-
-    @property
-    def _data(self):
-        return self.coordinator.data or {}
+        self.listener = None
+        self._data = {}
 
     @property
     def device_info(self):
@@ -59,12 +44,16 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
         }
 
     @property
-    def available(self):
-        return self._data.get("available", False)
-
-    @property
     def unique_id(self):
         return f"{self.device.BLEaddress}:{self.device.address}"
+
+    @property
+    def name(self):
+        return self.device.name
+
+    @property
+    def available(self):
+        return self._data.get("available", False)
 
     @property
     def is_on(self):
@@ -77,3 +66,16 @@ class PlejdSwitch(SwitchEntity, CoordinatorEntity):
     async def async_turn_off(self, **_):
         await self.device.turn_off()
         pass
+
+    @callback
+    def _handle_state_update(self, data):
+        self._data = data
+        self.async_write_ha_state()
+
+    async def async_added_to_hass(self):
+        self.listener = self.device.subscribe_state(self._handle_state_update)
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self.listener:
+            self.listener()
+        return await super().async_will_remove_from_hass()
