@@ -17,18 +17,17 @@ SCENE_ACTIVATION_RATE_LIMIT = timedelta(seconds=5)
 
 
 async def async_setup_entry(hass, config_entry: ConfigEntry, async_add_entities):
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        return
+    devices = hass.data[DOMAIN][config_entry.entry_id]["devices"]
+    scenes = hass.data[DOMAIN][config_entry.entry_id]["scenes"]
+
     entities = []
 
-    scenes: list[PlejdScene] = hass.data[DOMAIN]["scenes"].get(
-        config_entry.entry_id, []
-    )
     for s in scenes:
         event = PlejdSceneEvent(s, config_entry.entry_id)
         entities.append(event)
 
-    devices: list[PlejdDevice] = hass.data[DOMAIN]["devices"].get(
-        config_entry.entry_id, []
-    )
     for dev in devices:
         if dev.outputType in pyplejd.SENSOR:
             for i, _ in enumerate(dev.inputAddress):

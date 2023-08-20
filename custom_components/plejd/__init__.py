@@ -6,10 +6,8 @@ from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant import config_entries
-from homeassistant.helpers.event import async_track_point_in_utc_time
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
-import homeassistant.util.dt as dt_util
 from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN
@@ -39,16 +37,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             entry_type=dr.DeviceEntryType.SERVICE,
         )
 
-    hass.data.setdefault(DOMAIN, {}).update(
+    if DOMAIN not in hass.data:
+        hass.data[DOMAIN] = {}
+
+    data = hass.data[DOMAIN].setdefault(config_entry.entry_id, {})
+    data.update(
         {
             "stopping": False,
-        }
-    )
-    hass.data[DOMAIN].setdefault("devices", {}).update({config_entry.entry_id: devices})
-    hass.data[DOMAIN].setdefault("scenes", {}).update({config_entry.entry_id: scenes})
-    hass.data[DOMAIN].setdefault("manager", {}).update(
-        {
-            config_entry.entry_id: plejdManager,
+            "devices": devices,
+            "scenes": scenes,
+            "manager": plejdManager,
         }
     )
 
@@ -83,22 +81,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     # Ping mesh intermittently to keep the connection alive
     async def _ping(now=None):
-        if hass.data[DOMAIN].get("stopping"):
+        if data["stopping"]:
             return
         if not await plejdManager.ping():
             _LOGGER.debug("Ping failed")
-        hass.data[DOMAIN]["ping_timer"] = async_track_point_in_utc_time(
-            hass, _ping, dt_util.utcnow() + plejdManager.ping_interval
-        )
 
-    hass.async_create_task(_ping())
+    # hass.async_create_task(_ping())
+    config_entry.async_on_unload(
+        async_track_time_interval(hass, _ping, plejdManager.ping_interval)
+    )
 
     # Cleanup when Home Assistant stops
     async def _stop(ev):
-        hass.data[DOMAIN]["stopping"] = True
-        if hass.data[DOMAIN].get("ping_timer", None):
-            hass.data[DOMAIN]["ping_timer"]()
-            hass.data[DOMAIN]["ping_timer"] = None
+        data["stopping"] = True
         await plejdManager.disconnect()
 
     config_entry.async_on_unload(
@@ -114,16 +109,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
-        if hass.data[DOMAIN]["ping_timer"]:
-            hass.data[DOMAIN]["ping_timer"]()
-            hass.data[DOMAIN]["ping_timer"] = None
-        await hass.data[DOMAIN]["manager"][entry.entry_id].disconnect()
-
-        for block in ["devices", "scenes", "manager"]:
-            hass.data[DOMAIN][block].pop(entry.entry_id)
-            if not hass.data[DOMAIN][block]:
-                hass.data[DOMAIN].pop(block)
-        hass.data[DOMAIN].pop("ping_timer")
-        hass.data[DOMAIN].pop("stopping")
-
+        if entry.entry_id in hass.data[DOMAIN]:
+            del hass.data[DOMAIN][entry.entry_id]
     return unload_ok

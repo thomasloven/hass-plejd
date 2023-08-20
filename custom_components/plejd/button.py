@@ -8,7 +8,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    scenes = hass.data[DOMAIN]["scenes"].get(config_entry.entry_id, [])
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        return
+    scenes = hass.data[DOMAIN][config_entry.entry_id]["scenes"]
 
     entities = []
     for s in scenes:

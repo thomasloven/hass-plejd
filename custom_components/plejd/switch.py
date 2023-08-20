@@ -13,7 +13,9 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    devices = hass.data[DOMAIN]["devices"].get(config_entry.entry_id, [])
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        return
+    devices = hass.data[DOMAIN][config_entry.entry_id]["devices"]
 
     entities = []
     for dev in devices:
