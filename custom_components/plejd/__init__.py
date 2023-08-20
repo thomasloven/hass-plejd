@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from home_assistant_bluetooth.models import BluetoothServiceInfoBleak
 
@@ -80,18 +81,22 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     # Ping mesh intermittently to keep the connection alive
-    async def _ping(now=None):
+    async def _ping():
+        """ Ping the plejd mesh to keep the connection alive """
         if data["stopping"]:
             return
         if not await plejdManager.ping():
             _LOGGER.debug("Ping failed")
 
-    # hass.async_create_task(_ping())
     config_entry.async_on_unload(
         async_track_time_interval(hass, _ping, plejdManager.ping_interval)
     )
 
-    # Cleanup when Home Assistant stops
+    # Check that the mesh clock is in sync once per hour
+    config_entry.async_on_unload(
+        async_track_time_interval(hass, plejdManager.broadcast_time, timedelta(hours=1))
+    )
+
     async def _stop(ev):
         data["stopping"] = True
         await plejdManager.disconnect()

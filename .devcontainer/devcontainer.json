@@ -3,7 +3,8 @@
     "image": "thomasloven/hass-custom-devcontainer",
     "postCreateCommand": "sudo -E container setup-dev",
     "containerEnv": {
-      "DEVCONTAINER": "1"
+      "DEVCONTAINER": "1",
+      "TZ": "Europe/Stockholm"
     },
     "forwardPorts": [8123],
     "mounts": [
