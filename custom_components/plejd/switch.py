@@ -1,17 +1,21 @@
 from builtins import property
 import pyplejd
+from pyplejd.interface import PlejdDevice
 
 from homeassistant.core import callback
 from homeassistant.components.switch import SwitchEntity
-
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    if config_entry.entry_id not in hass.data[DOMAIN]:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
+):
+    if not (data := hass.data[DOMAIN].get(config_entry.entry_id)):
         return
-    devices = hass.data[DOMAIN][config_entry.entry_id]["devices"]
+    devices: list[PlejdDevice] = data["devices"]
 
     entities = []
     for dev in devices:
@@ -27,18 +31,19 @@ class PlejdSwitch(SwitchEntity):
 
     def __init__(self, device):
         SwitchEntity.__init__(self)
-        self.device = device
+        self.device: PlejdDevice = device
         self.listener = None
         self._data = {}
 
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, f"{self.device.BLEaddress}")},
+            "identifiers": {
+                (DOMAIN, f"{self.device.BLEaddress}", f"{self.device.address}")
+            },
             "name": self.device.name,
             "manufacturer": "Plejd",
             "model": self.device.hardware,
-            # "connections": ???,
             "suggested_area": self.device.room,
             "sw_version": f"{self.device.firmware}",
         }
@@ -46,10 +51,6 @@ class PlejdSwitch(SwitchEntity):
     @property
     def unique_id(self):
         return f"{self.device.BLEaddress}:{self.device.address}"
-
-    @property
-    def name(self):
-        return self.device.name
 
     @property
     def available(self):

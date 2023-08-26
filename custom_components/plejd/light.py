@@ -1,17 +1,23 @@
 import logging
+import pyplejd
+from pyplejd.interface import PlejdDevice
+
 from homeassistant.core import callback
 from homeassistant.components.light import LightEntity, ColorMode
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
-import pyplejd
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    if config_entry.entry_id not in hass.data[DOMAIN]:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
+):
+    if not (data := hass.data[DOMAIN].get(config_entry.entry_id)):
         return
-    devices = hass.data[DOMAIN][config_entry.entry_id]["devices"]
+    devices: list[PlejdDevice] = data["devices"]
 
     entities = []
     for dev in devices:
@@ -23,18 +29,21 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 class PlejdLight(LightEntity):
     _attr_has_entity_name = True
+    _attr_name = None
 
     def __init__(self, device):
         LightEntity.__init__(self)
-        self.device = device
+        self.device: PlejdDevice = device
         self.listener = None
         self._data = {}
 
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, f"{self.device.BLEaddress}")},
-            "name": self.device.room,
+            "identifiers": {
+                (DOMAIN, f"{self.device.BLEaddress}", f"{self.device.address}")
+            },
+            "name": self.device.name,
             "manufacturer": "Plejd",
             "model": self.device.hardware,
             "suggested_area": self.device.room,
@@ -44,10 +53,6 @@ class PlejdLight(LightEntity):
     @property
     def unique_id(self):
         return f"{self.device.BLEaddress}:{self.device.address}"
-
-    @property
-    def name(self):
-        return self.device.name
 
     @property
     def supported_color_modes(self):
