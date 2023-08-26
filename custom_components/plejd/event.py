@@ -5,7 +5,7 @@ from pyplejd.interface import PlejdScene, PlejdDevice
 
 from homeassistant.components.event import EventEntity, EventDeviceClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
+from homeassistant.core import callback, HomeAssistant
 from homeassistant.util import Throttle
 
 from .const import DOMAIN
@@ -13,11 +13,13 @@ from .const import DOMAIN
 SCENE_ACTIVATION_RATE_LIMIT = timedelta(seconds=5)
 
 
-async def async_setup_entry(hass, config_entry: ConfigEntry, async_add_entities):
-    if config_entry.entry_id not in hass.data[DOMAIN]:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
+):
+    if not (data := hass.data[DOMAIN].get(config_entry.entry_id)):
         return
-    devices = hass.data[DOMAIN][config_entry.entry_id]["devices"]
-    scenes = hass.data[DOMAIN][config_entry.entry_id]["scenes"]
+    devices: list[PlejdDevice] = data["devices"]
+    scenes: list[PlejdScene] = data["scenes"]
 
     entities = []
 
@@ -40,7 +42,7 @@ class PlejdSceneEvent(EventEntity):
 
     def __init__(self, device: PlejdScene, entry_id):
         super().__init__()
-        self.device = device
+        self.device: PlejdScene = device
         self.entry_id = entry_id
         self.listener = None
 
@@ -73,7 +75,7 @@ class PlejdButtonEvent(EventEntity):
     _attr_device_class = EventDeviceClass.BUTTON
 
     def __init__(self, device: PlejdDevice, button_id, entry_id):
-        self.device = device
+        self.device: PlejdDevice = device
         self.entry_id = entry_id
         self.button_id = button_id
         self.listener = None

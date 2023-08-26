@@ -1,26 +1,32 @@
+import pyplejd
+from pyplejd.interface import PlejdScene
 from homeassistant.components.scene import Scene
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    if config_entry.entry_id not in hass.data[DOMAIN]:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
+):
+    if not (data := hass.data[DOMAIN].get(config_entry.entry_id)):
         return
-    scenes = hass.data[DOMAIN][config_entry.entry_id]["scenes"]
+    scenes: list[PlejdScene] = data["scenes"]
 
     entities = []
     for s in scenes:
-        button = PlejdScene(s, config_entry.entry_id)
+        button = PlejdSceneEntity(s, config_entry.entry_id)
         entities.append(button)
     async_add_entities(entities, False)
 
 
-class PlejdScene(Scene):
+class PlejdSceneEntity(Scene):
     _attr_has_entity_name = True
 
     def __init__(self, device, entry_id):
         super().__init__()
-        self.device = device
+        self.device: PlejdScene = device
         self.entry_id = entry_id
 
     @property
