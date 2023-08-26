@@ -17,18 +17,23 @@ import pyplejd
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.BUTTON, Platform.EVENT]
+PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.SCENE, Platform.EVENT]
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Set up a Plejd mesh for a config entry."""
+    hass.data.setdefault(DOMAIN, {})
+
     plejdManager = pyplejd.PlejdManager(config_entry.data)
+    # TODO: Catch errors
     await plejdManager.init()
 
     devices = plejdManager.devices
     scenes = plejdManager.scenes
 
+    # TODO: Remove this entirely. Shouldn't be needed anymore.
     # Add a service entry if there are no devices - just so the user can get diagnostics data
-    if sum(d.outputType in [pyplejd.LIGHT, pyplejd.SWITCH] for d in devices) == 0:
+    if not any(d.outputType in [pyplejd.LIGHT, pyplejd.SWITCH] for d in devices):
         device_registry = dr.async_get(hass)
         device_registry.async_get_or_create(
             config_entry_id=config_entry.entry_id,
@@ -38,16 +43,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             entry_type=dr.DeviceEntryType.SERVICE,
         )
 
-    if DOMAIN not in hass.data:
-        hass.data[DOMAIN] = {}
-
     data = hass.data[DOMAIN].setdefault(config_entry.entry_id, {})
     data.update(
         {
-            "stopping": False,
+            "manager": plejdManager,
             "devices": devices,
             "scenes": scenes,
-            "manager": plejdManager,
+            "stopping": False,
         }
     )
 
@@ -59,6 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     # Search for devices in the mesh
     def _discovered_plejd(service_info: BluetoothServiceInfoBleak, *_):
+        """Register any discovered plejd devices with the manager."""
         plejdManager.add_mesh_device(service_info.device, service_info.rssi)
         hass.async_create_task(plejdManager.ping())
 
@@ -80,9 +83,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    # Ping mesh intermittently to keep the connection alive
     async def _ping():
-        """ Ping the plejd mesh to keep the connection alive """
+        """Ping the plejd mesh periodically to keep the connection alive."""
         if data["stopping"]:
             return
         if not await plejdManager.ping():
@@ -98,6 +100,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     )
 
     async def _stop(ev):
+        """Mark integration as stopping before disconnecting to avoid untimely reconnections by the periodic ping."""
         data["stopping"] = True
         await plejdManager.disconnect()
 
