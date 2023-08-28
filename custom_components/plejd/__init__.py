@@ -88,10 +88,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         if data["stopping"]:
             return
         if not await plejdManager.ping():
-            _LOGGER.warning("Ping failed")
+            _LOGGER.debug("Ping failed")
 
     config_entry.async_on_unload(
-        async_track_time_interval(hass, _ping, plejdManager.ping_interval, name="Plejd keep-alive")
+        async_track_time_interval(
+            hass, _ping, plejdManager.ping_interval, name="Plejd keep-alive"
+        )
     )
 
     async def _broadcast_time(timestamp):
@@ -101,7 +103,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         await plejdManager.broadcast_time()
 
     config_entry.async_on_unload(
-        async_track_time_interval(hass, _broadcast_time, timedelta(hours=1), name="Plejd sync time")
+        async_track_time_interval(
+            hass, _broadcast_time, timedelta(hours=1), name="Plejd sync time"
+        )
     )
 
     async def _stop(ev):
