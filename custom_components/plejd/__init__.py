@@ -83,20 +83,25 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    async def _ping():
+    async def _ping(timestamp):
         """Ping the plejd mesh periodically to keep the connection alive."""
         if data["stopping"]:
             return
         if not await plejdManager.ping():
-            _LOGGER.debug("Ping failed")
+            _LOGGER.warning("Ping failed")
 
     config_entry.async_on_unload(
-        async_track_time_interval(hass, _ping, plejdManager.ping_interval)
+        async_track_time_interval(hass, _ping, plejdManager.ping_interval, name="Plejd keep-alive")
     )
 
-    # Check that the mesh clock is in sync once per hour
+    async def _broadcast_time(timestamp):
+        """Check that the mesh clock is in sync once per hour."""
+        if data["stopping"]:
+            return
+        await plejdManager.broadcast_time()
+
     config_entry.async_on_unload(
-        async_track_time_interval(hass, plejdManager.broadcast_time, timedelta(hours=1))
+        async_track_time_interval(hass, _broadcast_time, timedelta(hours=1), name="Plejd sync time")
     )
 
     async def _stop(ev):
