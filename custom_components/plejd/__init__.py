@@ -31,17 +31,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     devices = plejdManager.devices
     scenes = plejdManager.scenes
 
-    # TODO: Remove this entirely. Shouldn't be needed anymore.
-    # Add a service entry if there are no devices - just so the user can get diagnostics data
-    if not any(d.outputType in [pyplejd.LIGHT, pyplejd.SWITCH] for d in devices):
-        device_registry = dr.async_get(hass)
-        device_registry.async_get_or_create(
-            config_entry_id=config_entry.entry_id,
-            identifiers={(DOMAIN, config_entry.data["siteId"])},
-            manufacturer="Plejd",
-            name=plejdManager.site_data.get("site", {}).get("title", "Unknown site"),
-            entry_type=dr.DeviceEntryType.SERVICE,
-        )
+    # Add a service entries for unknown or unhandled device types
+    device_registry = dr.async_get(hass)
+    for dev in devices:
+        if dev.outputType in [pyplejd.UNKNOWN, pyplejd.SENSOR]:
+            device_registry.async_get_or_create(
+                config_entry_id=config_entry.entry_id,
+                identifiers={(DOMAIN, f"{dev.BLEaddress}", f"{dev.address}")},
+                manufacturer="Plejd",
+                name=dev.name,
+                model=dev.hardware,
+                suggested_area=dev.room,
+                sw_version=f"{dev.firmware}",
+                entry_type=dr.DeviceEntryType.SERVICE,
+            )
 
     data = hass.data[DOMAIN].setdefault(config_entry.entry_id, {})
     data.update(
