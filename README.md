@@ -2,7 +2,9 @@
 
 No Plejd hub needed.
 
-I do not guarantee that this will work or even that it will not harm your system. I don't see what harm it _could_ cause, but I promise nothing.
+Also works with [EspHome Bluetooth Proxies](https://esphome.io/projects/?type=bluetooth). In fact, their use is recommended.
+
+If you make your own esphome configuration, make sure the [`bluetooth_proxy`](https://esphome.io/components/bluetooth_proxy) has `active` set to `True`.
 
 ## Installation for testing
 
