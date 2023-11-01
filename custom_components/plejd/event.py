@@ -10,7 +10,7 @@ from homeassistant.util import Throttle
 
 from .const import DOMAIN
 
-SCENE_ACTIVATION_RATE_LIMIT = timedelta(seconds=5)
+SCENE_ACTIVATION_RATE_LIMIT = timedelta(seconds=2)
 
 
 async def async_setup_entry(
