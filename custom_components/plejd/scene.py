@@ -16,6 +16,8 @@ async def async_setup_entry(
 
     entities = []
     for s in scenes:
+        if s.hidden:
+            continue
         button = PlejdSceneEntity(s, config_entry.entry_id)
         entities.append(button)
     async_add_entities(entities, False)
