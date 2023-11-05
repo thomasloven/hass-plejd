@@ -32,7 +32,7 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
   - An event entity will be triggered when each button is pushed
 
-- Rotary dimmer WRT-01 should register and fire events when pushed (untested).
+- Rotary dimmer WRT-01 should register and fire events when pushed.
 
   - Rotations are **not** registered. This is a limitation in how Plejd works. Rotation events are not actually sent to the mesh, but directly to whatever device the WRT-01 is paired to. Therefore it is impossible to listen in on them.
 
@@ -51,7 +51,7 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 - OUT-01 is not supported, because it is unreleased, and I don't have access to one.
 
-**If you have a DAL-01, OUT-01 or WRT-01 device, please get in touch to help me get them supported.**
+**If you have a DAL-01 or OUT-01, please get in touch to help me get them supported.**
 
 ## Other integrations
 
