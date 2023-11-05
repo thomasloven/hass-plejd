@@ -51,7 +51,7 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 - OUT-01 is not supported, because it is unreleased, and I don't have access to one.
 
-**If you have a DAL-01 or OUT-01, please get in touch to help me get them supported.**
+**If you have a DAL-01 or OUT-01 device, please get in touch to help me get them supported.**
 
 ## Other integrations
 
