@@ -7,6 +7,7 @@ from homeassistant.components.event import EventEntity, EventDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.util import Throttle
+from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN
 
@@ -83,12 +84,13 @@ class PlejdButtonEvent(EventEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, f"{self.device.BLEaddress}")},
+            "identifiers": {(DOMAIN, f"{self.device.BLEaddress}", f"{self.device.address}")},
             "name": self.device.name,
             "manufacturer": "Plejd",
             "model": self.device.hardware,
             "suggested_area": self.device.room,
             "sw_version": f"{self.device.firmware}",
+            "entry_type": dr.DeviceEntryType.SERVICE,
         }
 
     @property
