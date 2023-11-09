@@ -28,7 +28,7 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 - All known Plejd lights except OUT-01 should work
 
-- Color temperature is supported for DWN-01 and DWN-02
+- Color temperature is supported for DWN-01 and DWN-02 (and possibly LED-75, though this is untested)
 
   - Note that DWN-01 does not report back changes to the color temperature, so if you change temperature in Home Assistant, that will not be reflected in the plejd app. Home Assistant may also "forget" what color temperature was set from time to time.
 
