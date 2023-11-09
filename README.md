@@ -26,7 +26,11 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 - All known Plejd dimmers and relays should work (except DAL-01).
 
-- All known Plejd lights except OUT-01 should work, but white balance is not supported.
+- All known Plejd lights except OUT-01 should work
+
+- Color temperature is supported for DWN-01 and DWN-02
+
+  - Note that DWN-01 does not report back changes to the color temperature, so if you change temperature in Home Assistant, that will not be reflected in the plejd app. Home Assistant may also "forget" what color temperature was set from time to time.
 
 - Pushbutton WPH-01 should work.
 
