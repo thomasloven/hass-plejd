@@ -56,9 +56,24 @@ class PlejdLight(LightEntity):
 
     @property
     def supported_color_modes(self):
+        modes = {ColorMode.ONOFF}
+        if self.device.colortemp:
+            modes.add(ColorMode.COLOR_TEMP)
         if self.device.dimmable:
-            return {ColorMode.BRIGHTNESS}
-        return {ColorMode.ONOFF}
+            modes.add(ColorMode.BRIGHTNESS)
+        return modes
+
+    @property
+    def min_color_temp_kelvin(self) -> int:
+        if self.device.colortemp:
+            return self.device.colortemp[0]
+        return None
+
+    @property
+    def max_color_temp_kelvin(self) -> int:
+        if self.device.colortemp:
+            return self.device.colortemp[1]
+        return None
 
     @property
     def available(self):
@@ -73,13 +88,19 @@ class PlejdLight(LightEntity):
         return self._data.get("dim", 0)
 
     @property
+    def color_temp_kelvin(self):
+        return self._data.get("colortemp", None)
+
+    @property
     def color_mode(self):
+        if self.device.colortemp:
+            return ColorMode.COLOR_TEMP
         if self.device.dimmable:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
 
-    async def async_turn_on(self, brightness=None, **_):
-        await self.device.turn_on(brightness)
+    async def async_turn_on(self, brightness=None, color_temp=None, **_):
+        await self.device.turn_on(brightness, color_temp)
         pass
 
     async def async_turn_off(self, **_):
