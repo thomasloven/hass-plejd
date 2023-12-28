@@ -1,7 +1,7 @@
 import logging
 from datetime import timedelta
 
-from home_assistant_bluetooth.models import BluetoothServiceInfoBleak
+from home_assistant_bluetooth import BluetoothServiceInfoBleak
 
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
