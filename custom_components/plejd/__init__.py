@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from home_assistant_bluetooth import BluetoothServiceInfoBleak
 
+from homeassistant.helpers.storage import Store
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
@@ -19,16 +20,23 @@ import pyplejd
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.SCENE, Platform.EVENT]
-
+SITE_DATA_STORE_KEY = "plejd_site_data"
+SITE_DATA_STORE_VERSION = 1
+DATA_STORE = "STORE"
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up a Plejd mesh for a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
+    store = hass.data[DOMAIN][DATA_STORE] = Store(hass, SITE_DATA_STORE_VERSION, SITE_DATA_STORE_KEY)
+
     plejdManager = pyplejd.PlejdManager(config_entry.data)
 
+    if not(site_data := await store.async_load()) or not isinstance(site_data, dict):
+        site_data = {}
+
     try:
-        await plejdManager.init() #TODO: Load site details from .storage into init. Also, save them at some point.
+        await plejdManager.init(site_data.get(config_entry.data.get("siteId")))
     except pyplejd.ConnectionError as err:
         raise ConfigEntryNotReady from err
     except pyplejd.AuthenticationError as err:
@@ -120,6 +128,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     async def _stop(ev):
         """Mark integration as stopping before disconnecting to avoid untimely reconnections by the periodic ping."""
         data["stopping"] = True
+        site_data[config_entry.data.get("siteId")] = await plejdManager.get_raw_sitedata()
+        await store.async_save(site_data)
         await plejdManager.disconnect()
 
     config_entry.async_on_unload(
