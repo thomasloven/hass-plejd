@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from home_assistant_bluetooth import BluetoothServiceInfoBleak
 
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
 from homeassistant.config_entries import ConfigEntry
@@ -25,13 +26,18 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     hass.data.setdefault(DOMAIN, {})
 
     plejdManager = pyplejd.PlejdManager(config_entry.data)
-    # TODO: Catch errors
-    await plejdManager.init()
+
+    try:
+        await plejdManager.init() #TODO: Load site details from .storage into init. Also, save them at some point.
+    except pyplejd.ConnectionError as err:
+        raise ConfigEntryNotReady from err
+    except pyplejd.AuthenticationError as err:
+        raise ConfigEntryAuthFailed from err
 
     devices = plejdManager.devices
     scenes = plejdManager.scenes
 
-    # Add a service entries for unknown or unhandled device types
+    # Add a service entry for unknown or unhandled device types
     device_registry = dr.async_get(hass)
     for dev in devices:
         if dev.outputType in [pyplejd.UNKNOWN, pyplejd.SENSOR]:
