@@ -12,6 +12,6 @@
   "dependencies": ["bluetooth_adapters"],
   "documentation": "https://github.com/thomasloven/hass_plejd",
   "iot_class": "local_push",
-  "requirements": ["pyplejd==0.5.0"],
-  "version": "0.5.0"
+  "requirements": ["pyplejd==0.6.0"],
+  "version": "0.6.0"
 }
