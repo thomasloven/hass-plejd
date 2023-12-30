@@ -129,7 +129,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
-    if unload_ok:
-        if entry.entry_id in hass.data[DOMAIN]:
-            del hass.data[DOMAIN][entry.entry_id]
+    if not unload_ok:
+        return unload_ok
+
+    store = hass.data[DOMAIN][DATA_STORE]
+    if store:
+        site_data = await store.async_load()
+        siteId = entry.data.get("siteId")
+        if isinstance(site_data, dict) and siteId in site_data:
+            del site_data[siteId]
+            await store.async_save(site_data)
+
+    if entry.entry_id in hass.data[DOMAIN]:
+        del hass.data[DOMAIN][entry.entry_id]
     return unload_ok
