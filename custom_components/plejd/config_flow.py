@@ -9,9 +9,10 @@ import logging
 from typing import Any
 from homeassistant.config_entries import ConfigFlow, ConfigEntry
 from homeassistant.components import bluetooth
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
 
 from pyplejd import get_sites, verify_credentials, AuthenticationError, ConnectionError
-from .const import DOMAIN
+from .const import DOMAIN, CONF_SITE_ID, CONF_SITE_TITLE
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,6 +32,8 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
 
+        # Several devices may be discovered, but most likely they all belong to the same mesh.
+        # So this makes sure we only get a single discovery message.
         if self._async_in_progress():
             return self.async_abort(reason="single_instance_allowed")
 
@@ -56,7 +59,7 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema({})
         )
 
-    async def async_step_user(self, info=None):
+    async def async_step_user(self, user_input=None):
         """Handle a flow initiated by user."""
 
         if not bluetooth.async_scanner_count(self.hass, connectable=True):
@@ -64,14 +67,14 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
 
         errors = {}
 
-        if info is not None:
+        if user_input is not None:
             self.config = {
-                "username": info["username"],
-                "password": info["password"],
+                CONF_USERNAME: user_input[CONF_USERNAME],
+                CONF_PASSWORD: user_input[CONF_PASSWORD],
             }
 
             try:
-                await verify_credentials(username=self.config["username"], password=self.config["password"])
+                await verify_credentials(username=self.config[CONF_USERNAME], password=self.config[CONF_PASSWORD])
             except AuthenticationError:
                 errors["base"] = "faulty_credentials"
             except ConnectionError:
@@ -82,18 +85,18 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
-                    {vol.Required("username"): str, vol.Required("password"): str}
+                    {vol.Required(CONF_USERNAME): str, vol.Required(CONF_PASSWORD): str}
                 ),
                 errors=errors
             )
 
-    async def async_step_picksite(self, info=None):
+    async def async_step_picksite(self, user_input=None):
         """Select Plejd site to control."""
 
         if self.reauth_config_entry:
             self.config.update({
-                "siteId": self.reauth_config_entry.data["siteId"],
-                "siteTitle": self.reauth_config_entry.data["siteTitle"],
+                CONF_SITE_ID: self.reauth_config_entry.data[CONF_SITE_ID],
+                CONF_SITE_TITLE: self.reauth_config_entry.data[CONF_SITE_TITLE],
             })
 
             self.hass.config_entries.async_update_entry(
@@ -103,20 +106,20 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.hass.config_entries.async_reload(self.reauth_config_entry.entry_id)
 
             return self.async_abort(reason="reauth_successful")
-        elif info is not None:
-            siteId = info["site"]
+        elif user_input is not None:
+            siteId = user_input["site"]
 
             await self.async_set_unique_id(siteId)
             self._abort_if_unique_id_configured()
 
             self.config.update({
-                "siteId": siteId,
-                "siteTitle": self.sites[siteId],
+                CONF_SITE_ID: siteId,
+                CONF_SITE_TITLE: self.sites[siteId],
             })
 
             return self.async_create_entry(title=self.sites[siteId], data=self.config)
 
-        sites = await get_sites(username=self.config["username"], password=self.config["password"])
+        sites = await get_sites(username=self.config[CONF_USERNAME], password=self.config[CONF_PASSWORD])
 
         options = {}
         for site in sites:

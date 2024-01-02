@@ -10,10 +10,10 @@ from homeassistant.components.bluetooth.match import BluetoothCallbackMatcher
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform, CONF_USERNAME, CONF_PASSWORD
 from homeassistant.helpers import device_registry as dr
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_SITE_ID, CONF_SITE_TITLE
 
 import pyplejd
 
@@ -30,13 +30,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     store = hass.data[DOMAIN][DATA_STORE] = Store(hass, SITE_DATA_STORE_VERSION, SITE_DATA_STORE_KEY)
 
-    plejdManager = pyplejd.PlejdManager(config_entry.data)
+    credentials: pyplejd.PlejdCloudCredentials = {
+        "username": config_entry.data.get(CONF_USERNAME),
+        "password": config_entry.data.get(CONF_PASSWORD),
+        "siteId": config_entry.data.get(CONF_SITE_ID),
+    }
 
-    if not(site_data := await store.async_load()) or not isinstance(site_data, dict):
-        site_data = {}
+    plejdManager = pyplejd.PlejdManager(credentials)
+
+    if not(site_data_cache := await store.async_load()) or not isinstance(site_data_cache, dict):
+        site_data_cache = {}
 
     try:
-        await plejdManager.init(site_data.get(config_entry.data.get("siteId")))
+        await plejdManager.init(site_data_cache.get(config_entry.data.get(CONF_SITE_ID)))
     except pyplejd.ConnectionError as err:
         raise ConfigEntryNotReady from err
     except pyplejd.AuthenticationError as err:
@@ -85,7 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    async def _ping(timestamp):
+    async def _ping(_timestamp):
         """Ping the plejd mesh periodically to keep the connection alive."""
         if data["stopping"]:
             return
@@ -98,7 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         )
     )
 
-    async def _broadcast_time(timestamp):
+    async def _broadcast_time(_timestamp):
         """Check that the mesh clock is in sync once per hour."""
         if data["stopping"]:
             return
@@ -110,11 +116,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         )
     )
 
-    async def _stop(ev):
+    async def _stop(_ev):
         """Mark integration as stopping before disconnecting to avoid untimely reconnections by the periodic ping."""
         data["stopping"] = True
-        site_data[config_entry.data.get("siteId")] = await plejdManager.get_raw_sitedata()
-        await store.async_save(site_data)
+        site_data_cache[config_entry.data.get("siteId")] = await plejdManager.get_raw_sitedata()
+        await store.async_save(site_data_cache)
         await plejdManager.disconnect()
 
     config_entry.async_on_unload(
