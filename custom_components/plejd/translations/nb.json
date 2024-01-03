@@ -5,7 +5,9 @@
       "single_discovery_only": "Kun ett system kan settes opp med automatisk oppdagelse.",
       "no_device_discovered": "Finner ingen Plejd-meshnettverk.",
       "bluetooth_not_available": "Bluetooth må være satt opp for å bruke Plejd.",
-      "already_configured": "Det valgte systemet er allerede satt opp."
+      "already_configured": "Det valgte systemet er allerede satt opp.",
+      "reauth_successful": "Re-autentisering vellykket.",
+      "no_cloud_connection": "Tilkobling til Plejd-skyen feilet. Vennligst prøv igjen senere."
     },
     "step": {
       "user": {
@@ -17,7 +19,14 @@
       },
       "picksite": {
         "title": "Velg system"
+      },
+      "reauth_confirm": {
+        "title": "Re-autentisering påkrevd",
+        "description": "Brukernavnet og passordet for Plejd-skyen må verifiseres."
       }
+    },
+    "error": {
+      "faulty_credentials": "Feil brukernavn eller passord."
     }
   }
 }
