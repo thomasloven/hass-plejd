@@ -6,7 +6,7 @@
       "no_device_discovered": "No plejd bluetooth mesh was found.",
       "bluetooth_not_available": "At least one Bluetooth adapter or remote must be configured to use Plejd.",
       "already_configured": "The chosen site has already been configured.",
-      "reauth_successful": "Reauthorization was successful.",
+      "reauth_successful": "Reauthentication was successful.",
       "no_cloud_connection": "Connection to the Plejd cloud API failed. Please try again later."
     },
     "step": {
