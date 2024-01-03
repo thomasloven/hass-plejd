@@ -121,10 +121,9 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
         options = {}
         for site in sites:
             self.sites[site.siteId] = site.title
-            options[site.siteId] = f"{site.title} ({site.deviceCount} devices)"
 
         return self.async_show_form(
                 step_id="picksite",
-                data_schema=vol.Schema({vol.Required("site"): vol.In(options)}),
+                data_schema=vol.Schema({vol.Required("site"): vol.In(self.sites)}),
             )
 
