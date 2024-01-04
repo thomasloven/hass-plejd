@@ -1,121 +1,76 @@
-import logging
-import pyplejd
-from pyplejd.interface import PlejdDevice
+"""Support for Plejd lights."""
 
-from homeassistant.core import callback
 from homeassistant.components.light import LightEntity, ColorMode
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import callback, HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
-
+from .plejd_site import PlejdDevice, get_plejd_site_from_config_entry, OUTPUT_TYPE
+from .plejd_entity import PlejdDeviceBaseEntity
 
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
-):
-    if not (data := hass.data[DOMAIN].get(config_entry.entry_id)):
-        return
-    devices: list[PlejdDevice] = data["devices"]
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
+    """Set up the Plejd lights from a config entry."""
+    site = get_plejd_site_from_config_entry(hass, config_entry)
 
-    entities = []
-    for dev in devices:
-        if dev.outputType == pyplejd.LIGHT:
-            light = PlejdLight(dev)
-            entities.append(light)
-    async_add_entities(entities, False)
+    @callback
+    def async_add_light(device: PlejdDevice) -> None:
+        """Add light from Plejd."""
+        entity = PlejdLight(device)
+        async_add_entities([entity])
+    site.register_platform_add_device_callback(async_add_light, OUTPUT_TYPE.LIGHT)
 
 
-class PlejdLight(LightEntity):
-    _attr_has_entity_name = True
-    _attr_name = None
+class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
+    """Representation of a Plejd light."""
 
-    def __init__(self, device):
+    def __init__(self, device: PlejdDevice) -> None:
+        """Set up light."""
         LightEntity.__init__(self)
-        self.device: PlejdDevice = device
-        self.listener = None
-        self._data = {}
+        PlejdDeviceBaseEntity.__init__(self, device)
+
+        self._attr_supported_color_modes: set[ColorMode] = set([ColorMode.ONOFF])
+        if device.colortemp:
+            self._attr_supported_color_modes.add(ColorMode.COLOR_TEMP)
+            self._attr_min_color_temp_kelvin = device.colortemp[0]
+            self._attr_max_color_temp_kelvin = device.colortemp[1]
+        if device.dimmable:
+            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
 
     @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                (DOMAIN, f"{self.device.BLEaddress}", f"{self.device.address}")
-            },
-            "name": self.device.name,
-            "manufacturer": "Plejd",
-            "model": self.device.hardware,
-            "suggested_area": self.device.room,
-            "sw_version": f"{self.device.firmware}",
-        }
-
-    @property
-    def unique_id(self):
-        return f"{self.device.BLEaddress}:{self.device.address}"
-
-    @property
-    def supported_color_modes(self):
-        modes = {ColorMode.ONOFF}
-        if self.device.colortemp:
-            modes.add(ColorMode.COLOR_TEMP)
-        if self.device.dimmable:
-            modes.add(ColorMode.BRIGHTNESS)
-        return modes
-
-    @property
-    def min_color_temp_kelvin(self) -> int:
-        if self.device.colortemp:
-            return self.device.colortemp[0]
-        return None
-
-    @property
-    def max_color_temp_kelvin(self) -> int:
-        if self.device.colortemp:
-            return self.device.colortemp[1]
-        return None
-
-    @property
-    def available(self):
+    def available(self) -> bool:
+        """Returns whether the light is avaiable."""
         return self._data.get("available", False)
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
+        """Returns true if light is on."""
         return self._data.get("state", False)
 
     @property
-    def brightness(self):
+    def brightness(self) -> int | None:
+        """Returns the current brightness of the light."""
         return self._data.get("dim", 0)
 
     @property
-    def color_temp_kelvin(self):
+    def color_temp_kelvin(self) -> int | None:
+        """Returns the current color temperature of the light."""
         return self._data.get("colortemp", None)
 
     @property
-    def color_mode(self):
+    def color_mode(self) -> str:
+        """Returns the current color mode of the light."""
         if self.device.colortemp:
             return ColorMode.COLOR_TEMP
         if self.device.dimmable:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
 
-    async def async_turn_on(self, brightness=None, color_temp=None, **_):
+    async def async_turn_on(self, brightness: int|None = None, color_temp: int|None = None, **_) -> None:
+        """Turn the light on."""
         await self.device.turn_on(brightness, color_temp)
-        pass
 
-    async def async_turn_off(self, **_):
+    async def async_turn_off(self, **_) -> None:
+        """Turn the light off."""
         await self.device.turn_off()
-        pass
-
-    @callback
-    def _handle_state_update(self, data):
-        self._data = data
-        self.async_write_ha_state()
-
-    async def async_added_to_hass(self):
-        self.listener = self.device.subscribe_state(self._handle_state_update)
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self.listener:
-            self.listener()
-        return await super().async_will_remove_from_hass()

@@ -1,6 +1,10 @@
-import pyplejd
+"""Diagnostic support for Plejd."""
+from typing import TypeVar
+from pyplejd import PlejdManager
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+
+from .plejd_site import get_plejd_site_from_config_entry, PlejdSite
 
 
 REDACT_KEYS = {
@@ -56,7 +60,10 @@ REDACT_KEYS = {
     }
 }
 
-def redact(data: dict | list, keys: dict):
+T = TypeVar('T', dict, list)
+
+def redact(data: T, keys: dict) -> T:
+    """Recursively redact potentially sensitive information from Plejd Site data."""
     if isinstance(data, list):
         return [redact(item, keys) for item in data]
     for key,value in keys.items():
@@ -71,7 +78,9 @@ def redact(data: dict | list, keys: dict):
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, config_entry: ConfigEntry
 ):
-    """Return the plejd site configureation from the cloud"""
-    plejdManager = pyplejd.PlejdManager(config_entry.data)
+    """Return the plejd site configuration from the cloud."""
+
+    site: PlejdSite = get_plejd_site_from_config_entry(config_entry)
+    plejdManager: PlejdManager = site.manager
     sitedata = await plejdManager.get_raw_sitedata()
     return redact(sitedata, REDACT_KEYS)

@@ -7,7 +7,7 @@ Reauthentication when issues with cloud api credentials are reported.
 import voluptuous as vol
 import logging
 from typing import Any
-from homeassistant.config_entries import ConfigFlow, ConfigEntry
+from homeassistant.config_entries import ConfigFlow, ConfigEntry, FlowResult
 from homeassistant.components import bluetooth
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
 
@@ -27,7 +27,7 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
         self.reauth_config_entry: ConfigEntry | None = None
         self.sites: dict[str, str] = {}
 
-    async def async_step_bluetooth(self, discovery_info):
+    async def async_step_bluetooth(self, _: Any) -> FlowResult:
         """Handle a discovered Plejd mesh."""
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
@@ -39,7 +39,7 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_user()
 
-    async def async_step_reauth(self, user_input=None):
+    async def async_step_reauth(self, _: dict[str, Any] | None = None) -> FlowResult:
         """Trigger a reauthentication flow."""
 
         config_entry = self.hass.config_entries.async_get_entry(
@@ -50,7 +50,7 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(self, user_input=None):
+    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         if user_input is not None:
             return await self.async_step_user()
 
@@ -59,7 +59,7 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema({})
         )
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle a flow initiated by user."""
 
         if not bluetooth.async_scanner_count(self.hass, connectable=True):
@@ -90,7 +90,7 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors=errors
             )
 
-    async def async_step_picksite(self, user_input=None):
+    async def async_step_picksite(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Select Plejd site to control."""
 
         if self.reauth_config_entry:
