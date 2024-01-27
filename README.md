@@ -24,13 +24,15 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 ## Supported devices
 
-- All known Plejd dimmers and relays should work (except DAL-01).
+- All known Plejd dimmers and relays should work.
 
-- All known Plejd lights except OUT-01 should work
+  - DAL-01 is still largely untested. If you have a DAL-01 connected to a DALI bus with more than one device, or some non-light devices, please get in touch.
 
-- Color temperature is supported for DWN-01 and DWN-02 (and possibly LED-75, though this is untested)
+- All known Plejd lights (except maybe OUT-01) should work
 
-  - Note that DWN-01 does not report back changes to the color temperature, so if you change temperature in Home Assistant, that will not be reflected in the plejd app. Home Assistant may also "forget" what color temperature was set from time to time.
+- Color temperature is supported for DWN-01 and DWN-02 (and possibly LED-75 and DAL-01, though this is untested)
+
+  - Note that Plejd devices do not report back changes to the color temperature, so if you change temperature in Home Assistant, that will not be reflected in the plejd app and vice versa. Home Assistant may also "forget" what color temperature was set from time to time.
 
 - Pushbutton WPH-01 should work.
 
@@ -50,8 +52,6 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 - EXT-01 doesn't do anything
 
 - RTR-01 Is not actually a device but an addition to other devices.
-
-- DAL-01 is not supported, because I don't have access to one.
 
 - OUT-01 and WMS-01 are not supported, because they are unreleased, and I don't have access to any.
 
