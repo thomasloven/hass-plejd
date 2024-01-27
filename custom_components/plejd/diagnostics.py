@@ -80,7 +80,7 @@ async def async_get_config_entry_diagnostics(
 ):
     """Return the plejd site configuration from the cloud."""
 
-    site: PlejdSite = get_plejd_site_from_config_entry(config_entry)
+    site: PlejdSite = get_plejd_site_from_config_entry(hass, config_entry)
     plejdManager: PlejdManager = site.manager
     sitedata = await plejdManager.get_raw_sitedata()
     return redact(sitedata, REDACT_KEYS)
