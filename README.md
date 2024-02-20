@@ -20,8 +20,6 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 - Hopefully, your Plejd mesh will be auto discovered and you should see a message popping up in your integrations page.
 - Log in with the credentials you use in the Plejd app when prompted (email address and password)
 
-> Note: I will not have this added to the HACS default repository. My hope is to have it added to Home Assistant instead.
-
 ## Supported devices
 
 - All known Plejd dimmers and relays should work.
@@ -38,6 +36,8 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
   - An event entity will be triggered when each button is pushed
 
+- Motion sensor WMS-01 should work
+
 - Rotary dimmer WRT-01 should register and fire events when pushed.
 
   - Rotations are **not** registered. This is a limitation in how Plejd works. Rotation events are not actually sent to the mesh, but directly to whatever device the WRT-01 is paired to. Therefore it is impossible to listen in on them.
@@ -53,9 +53,9 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 - RTR-01 Is not actually a device but an addition to other devices.
 
-- OUT-01 and WMS-01 are not supported, because they are unreleased, and I don't have access to any.
+- OUT-01 is not supported, because they are unreleased, and I don't have access to any.
 
-**If you have a DAL-01, OUT-01 or WMS-01 device, please get in touch to help me get them supported.**
+**If you have a DAL-01 or OUT-01device, please get in touch to help me get them supported.**
 
 ## Other integrations
 
