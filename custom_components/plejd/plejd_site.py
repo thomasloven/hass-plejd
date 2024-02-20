@@ -24,6 +24,7 @@ class OUTPUT_TYPE(str, Enum):
     LIGHT = pyplejd.LIGHT
     SWITCH = pyplejd.SWITCH
     BUTTON = pyplejd.SENSOR
+    MOTION = pyplejd.MOTION
     SCENE = "scene"
     SCENE_EVENT = "scene_event"
     UNKNOWN = pyplejd.UNKNOWN
@@ -139,6 +140,7 @@ class PlejdSite:
         )
 
         self.hass.async_create_task(self._ping())
+        self.hass.async_create_task(self._broadcast_time())
 
     async def stop(self, *_) -> None:
         """Disconnect mesh and tear down site configuration."""
