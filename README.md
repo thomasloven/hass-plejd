@@ -1,5 +1,7 @@
 # Plejd integration for Home Assistant
 
+<img src="https://github.com/thomasloven/hass_plejd/assets/1299821/39d94f4b-bb56-43b3-9177-5be20cd91508" width="50%">
+
 Connects to your [Plejd](https://www.plejd.com) devices using your Home Assistant Bluetooth.
 
 This integration requires a [Bluetooth](https://www.home-assistant.io/integrations/bluetooth/) adapter which supports at least one Active connections.
@@ -55,7 +57,7 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 - OUT-01 is not supported, because they are unreleased, and I don't have access to any.
 
-**If you have a DAL-01 or OUT-01device, please get in touch to help me get them supported.**
+**If you have an OUT-01 or any new device, please get in touch to help me get them supported.**
 
 ## Other integrations
 
@@ -72,3 +74,6 @@ I could not have made this one without their great job in decoding the Plejd clo
 | [ha-plejd](https://github.com/klali/ha-plejd)                      | [@klali](https://github.com/klali) <br> (also check [this fork](https://github.com/bnordli/ha-plejd/tree/to-integration) by [@bnordli](https://github.com/bnordli)) | Does not communicate with the Plejd API and therefore requires you to extract the cryptokey and device data from the Plejd app somehow.<br> No auto discovery.<br> Requires exclusive access to a Bluetooth dongle.<br> Does not support Bluetooth Proxy. |
 | [homey-plejd](https://github.com/emilohman/homey-plejd)            | [@emilohman](https://github.com/emilohman)                                                                                                                          | For Homey                                                                                                                                                                                                                                                 |
 | [homebridge-plejd](https://github.com/blommegard/homebridge-plejd) | [@blommegard](https://github.com/blommegard)                                                                                                                        | For Homebridge                                                                                                                                                                                                                                            |
+
+The Plejd name and logo is copyrighted and trademarked and belongs to Plejd AB.
+The author of this repository is not associated with Plejd AB.
