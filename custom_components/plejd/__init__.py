@@ -4,9 +4,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers.device_registry import DeviceEntry
 
 from .const import DOMAIN, CONF_SITE_ID
 from .plejd_site import PlejdSite, ConnectionError, AuthenticationError
+from .plejd_entity import make_identifier
 
 PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.SCENE, Platform.EVENT, Platform.BINARY_SENSOR]
 
@@ -52,3 +54,20 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     del hass.data[DOMAIN][entry.entry_id]
 
     return unload_ok
+
+async def async_remove_config_entry_device(
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        device_entry: DeviceEntry,
+        ) -> bool:
+    """Allow removing a Plejd device if orphaned."""
+    site: PlejdSite = hass.data[DOMAIN][config_entry.entry_id]
+    if not site:
+        return True
+    for device in site.devices:
+        if device.hidden:
+            continue
+        if make_identifier(device) in device_entry.identifiers:
+            return False
+
+    return True
