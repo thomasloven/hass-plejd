@@ -9,7 +9,8 @@
     "forwardPorts": [8123],
     "mounts": [
       "source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind",
-      "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/config/pyplejd,type=bind"
+      "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/config/pyplejd,type=bind",
+      "source=/home/thomas/code/home-assistant/custom-cards/hass-plejd/pyplejd/pyplejd,target=/usr/local/bin/pyplejd,type=bind"
     ],
     "extensions": [
       "github.vscode-pull-request-github",
