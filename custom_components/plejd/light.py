@@ -30,13 +30,15 @@ class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
         LightEntity.__init__(self)
         PlejdDeviceBaseEntity.__init__(self, device)
 
-        self._attr_supported_color_modes: set[ColorMode] = set([ColorMode.ONOFF])
+        self._attr_supported_color_modes: set[ColorMode] = set()
         if device.colortemp:
             self._attr_supported_color_modes.add(ColorMode.COLOR_TEMP)
             self._attr_min_color_temp_kelvin = device.colortemp[0]
             self._attr_max_color_temp_kelvin = device.colortemp[1]
-        if device.dimmable:
+        elif device.dimmable:
             self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
+        else:
+            self._attr_supported_color_modes.add(ColorMode.ONOFF)
 
     @property
     def available(self) -> bool:
