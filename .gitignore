@@ -11,3 +11,4 @@ custom_components/*/
 !pyplejd
 !.devcontainer/
 !.vscode/
+!.github/
