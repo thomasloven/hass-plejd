@@ -28,7 +28,7 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
   - DAL-01 is still largely untested. If you have a DAL-01 connected to a DALI bus with more than one device, or some non-light devices, please get in touch.
 
-- All known Plejd lights (except maybe OUT-01) should work
+- All known Plejd lights should work
 
 - Color temperature is supported for DWN-01 and DWN-02 (and possibly LED-75 and DAL-01, though this is untested)
 
@@ -54,10 +54,6 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 - EXT-01 doesn't do anything
 
 - RTR-01 Is not actually a device but an addition to other devices.
-
-- OUT-01 is not supported, because they are unreleased, and I don't have access to any.
-
-**If you have an OUT-01 or any new device, please get in touch to help me get them supported.**
 
 ## Other integrations
 
