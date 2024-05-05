@@ -86,8 +86,6 @@ class PlejdSite:
         self.scenes = self.manager.scenes
 
         for device in self.devices:
-            if device.hidden:
-                continue
             if (adder := self.add_device_callbacks.get(device.outputType)):
                 adder(device)
             else:
