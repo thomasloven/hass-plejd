@@ -39,6 +39,11 @@ class PlejdDeviceBaseEntity(Entity):
         """Return unique identifier for the entity."""
         return f"{self.device.BLEaddress}:{self.device.address}"
 
+    @property
+    def entity_registry_visible_default(self):
+        """Return if the device should be visible by default"""
+        return not self.device.hidden
+
     @callback
     def _handle_state_update(self, data) -> None:
           """When device state is updated from Plejd"""
