@@ -16,5 +16,5 @@
   "issue_tracker": "https://github.com/thomasloven/hass_plejd/issues",
   "loggers": ["pyplejd"],
   "requirements": ["pyplejd==0.13.0"],
-  "version": "0.13.0"
+  "version": "0.13.1"
 }
