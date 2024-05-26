@@ -121,7 +121,7 @@ class PlejdSite:
         # Run through already discovered devices and add plejds to the manager
         for service_info in bluetooth.async_discovered_service_info(self.hass, True):
             if pyplejd.PLEJD_SERVICE.lower() in service_info.advertisement.service_uuids:
-                self._discovered(service_info, connect=False)
+                self._discovered(service_info)
 
         # Ping the mesh periodically to maintain the connection
         self.config_entry.async_on_unload(
@@ -152,11 +152,9 @@ class PlejdSite:
         await self.manager.disconnect()
 
 
-    def _discovered(self, service_info: BluetoothServiceInfoBleak, *_, connect: bool = True) -> None:
+    def _discovered(self, service_info: BluetoothServiceInfoBleak, *_) -> None:
         """Register any discovered plejd device with the manager."""
         self.manager.add_mesh_device(service_info.device, service_info.rssi)
-        if connect:
-            self.hass.async_create_task(self._ping())
 
     async def _ping(self, *_) -> None:
         """Ping the plejd mesh to connect or maintain the connection."""
