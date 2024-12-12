@@ -15,7 +15,7 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 - Make sure you have no other plejd custom components or add-ons running.
 - Install the integration:
 
-  - Using HACS: [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thomasloven&repository=hass-plejd&category=integration)
+  - Using HACS: [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thomasloven&repository=hass-plejd&category=integration) or search for `Plejd`.
   - Manually: Download the `plejd` directory and place in your `<config>/custom_components`.
 
 - Restart Home Assistant
