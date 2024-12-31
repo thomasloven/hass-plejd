@@ -5,7 +5,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .plejd_site import PlejdDevice, get_plejd_site_from_config_entry, OUTPUT_TYPE
+from .plejd_site import PlejdDevice, get_plejd_site_from_config_entry, OUTPUT_TYPE, PlejdLight
 from .plejd_entity import PlejdDeviceBaseEntity
 
 async def async_setup_entry(
@@ -25,7 +25,7 @@ async def async_setup_entry(
 class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
     """Representation of a Plejd light."""
 
-    def __init__(self, device: PlejdDevice) -> None:
+    def __init__(self, device: PlejdLight) -> None:
         """Set up light."""
         LightEntity.__init__(self)
         PlejdDeviceBaseEntity.__init__(self, device)
@@ -48,6 +48,8 @@ class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
     @property
     def is_on(self) -> bool:
         """Returns true if light is on."""
+        if self.device.outputType == "COVERABLE":
+            return True
         return self._data.get("state", False)
 
     @property

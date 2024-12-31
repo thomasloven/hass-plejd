@@ -10,7 +10,7 @@ from .const import DOMAIN, CONF_SITE_ID
 from .plejd_site import PlejdSite, ConnectionError, AuthenticationError
 from .plejd_entity import make_identifier
 
-PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.SCENE, Platform.EVENT, Platform.BINARY_SENSOR]
+PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.SCENE, Platform.EVENT, Platform.BINARY_SENSOR, Platform.COVER]
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up a Plejd mesh for a config entry."""

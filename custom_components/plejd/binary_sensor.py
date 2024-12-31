@@ -7,7 +7,7 @@ from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
 
-from .plejd_site import  PlejdDevice, get_plejd_site_from_config_entry, OUTPUT_TYPE
+from .plejd_site import  PlejdDevice, get_plejd_site_from_config_entry, OUTPUT_TYPE, PlejdMotionSensor
 from .plejd_entity import PlejdDeviceBaseEntity
 
 MOTION_SENSOR_COOLDOWN = timedelta(minutes=1)
@@ -20,7 +20,7 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_motion_sensor(device: PlejdDevice):
+    def async_add_motion_sensor(device: PlejdMotionSensor):
         """Add motion sensor from Plejd."""
         entity = PlejdMotionSensor(device, hass)
         async_add_entities([entity])
@@ -34,7 +34,6 @@ class PlejdMotionSensor(PlejdDeviceBaseEntity, BinarySensorEntity):
         """Set up motion sensor."""
         BinarySensorEntity.__init__(self)
         PlejdDeviceBaseEntity.__init__(self, device)
-        self.listener = None
         self.is_on = False
         self.cooldown = None
         self.hass = hass
@@ -46,17 +45,13 @@ class PlejdMotionSensor(PlejdDeviceBaseEntity, BinarySensorEntity):
         self.async_write_ha_state()
 
     @callback
-    def _handle_triggered(self, _) -> None:
+    def _handle_update(self, _) -> None:
         """When motion is detected from Plejd."""
         self.is_on = True
         if self.cooldown:
             self.cooldown()
         self.cooldown = async_call_later(self.hass, MOTION_SENSOR_COOLDOWN, self._handle_untrigger)
         self.async_write_ha_state()
-
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-        self.listener = self.device.subscribe_event(self._handle_triggered)
 
     async def async_will_remove_from_hass(self) -> None:
         """When entity will be removed from hass."""

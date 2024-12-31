@@ -4,6 +4,7 @@ from datetime import timedelta
 import logging
 from typing import cast, Callable
 from enum import Enum
+from collections import defaultdict
 
 from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
@@ -15,7 +16,7 @@ from home_assistant_bluetooth import BluetoothServiceInfoBleak
 
 import pyplejd
 from pyplejd import ConnectionError, AuthenticationError
-from pyplejd.interface import PlejdDevice, PlejdScene
+from pyplejd.interface import PlejdDevice, PlejdScene, PlejdLight, PlejdButton, PlejdMotionSensor, PlejdCover
 from .const import DOMAIN
 from .plejd_entity import register_unknown_device
 
@@ -25,6 +26,7 @@ class OUTPUT_TYPE(str, Enum):
     SWITCH = pyplejd.SWITCH
     BUTTON = pyplejd.SENSOR
     MOTION = pyplejd.MOTION
+    COVER = pyplejd.COVERABLE
     SCENE = "scene"
     SCENE_EVENT = "scene_event"
     UNKNOWN = pyplejd.UNKNOWN
@@ -64,14 +66,14 @@ class PlejdSite:
 
         self.stopping = False
 
-        self.add_device_callbacks = {}
+        self.add_device_callbacks = defaultdict(list)
 
     def register_platform_add_device_callback(
         self,
         callback: Callable[[PlejdDevice | PlejdScene], None],
         output_type: OUTPUT_TYPE
     ) -> None:
-        self.add_device_callbacks[output_type] = callback
+        self.add_device_callbacks[output_type].append(callback)
 
     async def start(self) -> None:
         """Setup and connect to plejd site."""
@@ -86,17 +88,16 @@ class PlejdSite:
         self.scenes = self.manager.scenes
 
         for device in self.devices:
-            if (adder := self.add_device_callbacks.get(device.outputType)):
-                adder(device)
+            if (adders := self.add_device_callbacks.get(device.outputType)):
+                for adder in adders:
+                    adder(device)
             else:
-                register_unknown_device(self.hass, device, self.config_entry.entry_id)
+                if device.outputType:
+                    register_unknown_device(self.hass, device, self.config_entry.entry_id)
 
         for scene in self.scenes:
-            if (adder := self.add_device_callbacks.get(OUTPUT_TYPE.SCENE_EVENT)):
-                adder(scene)
-            if scene.hidden:
-                continue
-            if (adder := self.add_device_callbacks.get(OUTPUT_TYPE.SCENE)):
+            if (adders := self.add_device_callbacks.get(OUTPUT_TYPE.SCENE)):
+              for adder in adders:
                 adder(scene)
 
 

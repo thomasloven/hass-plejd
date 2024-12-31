@@ -26,7 +26,7 @@ class PlejdDeviceBaseEntity(Entity):
     def device_info(self):
         """Return a device description for device registry."""
         return {
-            "identifiers": {make_identifier(self.device)},
+            "identifiers": {(DOMAIN, *self.device.device_identifier)},
             "name": self.device.name,
             "manufacturer": MANUFACTURER,
             "model": self.device.hardware,
@@ -37,7 +37,7 @@ class PlejdDeviceBaseEntity(Entity):
     @property
     def unique_id(self):
         """Return unique identifier for the entity."""
-        return f"{self.device.BLEaddress}:{self.device.address}"
+        return ":".join(self.device.identifier)
 
     @property
     def entity_registry_visible_default(self):
@@ -45,14 +45,14 @@ class PlejdDeviceBaseEntity(Entity):
         return not self.device.hidden
 
     @callback
-    def _handle_state_update(self, data) -> None:
+    def _handle_update(self, data) -> None:
           """When device state is updated from Plejd"""
           self._data = data
           self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
           """When entity is added to hass."""
-          self.listener = self.device.subscribe_state(self._handle_state_update)
+          self.listener = self.device.subscribe(self._handle_update)
 
     async def async_will_remove_from_hass(self) -> None:
         """When entity will be removed from hass."""
@@ -66,7 +66,7 @@ def register_unknown_device(hass: HomeAssistant, device: PlejdDevice, config_ent
     device_registry = dr.async_get(hass)
     device_registry.async_get_or_create(
         config_entry_id=config_entry_id,
-        identifiers={make_identifier(device)},
+        identifiers={(DOMAIN, *device.device_identifier)},
         manufacturer=MANUFACTURER,
         name=device.name,
         model=device.hardware,

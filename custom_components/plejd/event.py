@@ -7,7 +7,7 @@ from homeassistant.core import callback, HomeAssistant
 from homeassistant.util import Throttle
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .plejd_site import  PlejdDevice, PlejdScene, get_plejd_site_from_config_entry, OUTPUT_TYPE
+from .plejd_site import  PlejdDevice, PlejdScene, get_plejd_site_from_config_entry, OUTPUT_TYPE, PlejdButton
 from .plejd_entity import PlejdDeviceBaseEntity
 
 SCENE_ACTIVATION_RATE_LIMIT = timedelta(seconds=2)
@@ -20,21 +20,17 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_button_event(device: PlejdDevice):
+    def async_add_button_event(device: PlejdButton):
         """Add button events from Plejd."""
-        entities = []
-        for i, _ in enumerate(device.inputAddress):
-            entities.append(
-                PlejdButtonEvent(device, i)
-            )
-        async_add_entities(entities)
+        entity = PlejdButtonEvent(device, device.button_id)
+        async_add_entities([entity])
     site.register_platform_add_device_callback(async_add_button_event, OUTPUT_TYPE.BUTTON)
 
     @callback
     def async_add_scene_event(scene: PlejdScene):
         entity = PlejdSceneEvent(scene, config_entry.entry_id)
         async_add_entities([entity])
-    site.register_platform_add_device_callback(async_add_scene_event, OUTPUT_TYPE.SCENE_EVENT)
+    site.register_platform_add_device_callback(async_add_scene_event, OUTPUT_TYPE.SCENE)
 
 
 class PlejdSceneEvent(EventEntity):
@@ -92,21 +88,17 @@ class PlejdButtonEvent(PlejdDeviceBaseEntity, EventEntity):
     @property
     def name(self) -> str:
         """Return the name of the event entity."""
-        return f"{self.button_id} pressed"
+        return f"{self.button_id+1} pressed"
 
     @property
     def unique_id(self) -> str:
         """Return unique identifier for the event entity."""
-        return f"{self.device.BLEaddress}:{self.device.address}:{self.button_id}:press"
+        return super().unique_id + ":press"
 
     # @Throttle(SCENE_ACTIVATION_RATE_LIMIT)
     @callback
-    def _handle_button_press(self, event) -> None:
+    def _handle_update(self, event) -> None:
         """When a button is pushed from Plejd."""
-        if event["button"] == self.button_id:
+        if "button" in event and event["button"] == self.button_id:
             self._trigger_event("press")
             self.async_write_ha_state()
-
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-        self.listener = self.device.subscribe_event(self._handle_button_press)

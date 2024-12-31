@@ -14,6 +14,8 @@ async def async_setup_entry(
     @callback
     def async_add_scene(scene: PlejdScene) -> None:
         """Add light from Plejd."""
+        if scene.hidden:
+            return
         entity = PlejdSceneEntity(scene, config_entry.entry_id)
         async_add_entities([entity])
     site.register_platform_add_device_callback(async_add_scene, OUTPUT_TYPE.SCENE)
