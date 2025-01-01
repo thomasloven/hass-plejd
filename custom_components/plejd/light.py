@@ -5,11 +5,19 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .plejd_site import PlejdDevice, get_plejd_site_from_config_entry, OUTPUT_TYPE, PlejdLight
+from .plejd_site import (
+    PlejdDevice,
+    get_plejd_site_from_config_entry,
+    OUTPUT_TYPE,
+    PlejdLight,
+)
 from .plejd_entity import PlejdDeviceBaseEntity
 
+
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Plejd lights from a config entry."""
     site = get_plejd_site_from_config_entry(hass, config_entry)
@@ -19,6 +27,7 @@ async def async_setup_entry(
         """Add light from Plejd."""
         entity = PlejdLight(device)
         async_add_entities([entity])
+
     site.register_platform_add_device_callback(async_add_light, OUTPUT_TYPE.LIGHT)
 
 
@@ -71,7 +80,9 @@ class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
 
-    async def async_turn_on(self, brightness: int|None = None, color_temp: int|None = None, **_) -> None:
+    async def async_turn_on(
+        self, brightness: int | None = None, color_temp: int | None = None, **_
+    ) -> None:
         """Turn the light on."""
         await self.device.turn_on(brightness, color_temp)
 

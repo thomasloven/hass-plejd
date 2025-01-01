@@ -5,6 +5,7 @@ from homeassistant.core import callback, HomeAssistant
 from .plejd_site import PlejdScene, get_plejd_site_from_config_entry, OUTPUT_TYPE
 from .plejd_entity import PlejdDeviceBaseEntity
 
+
 async def async_setup_entry(
     hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
 ) -> None:
@@ -18,11 +19,13 @@ async def async_setup_entry(
             return
         entity = PlejdSceneEntity(scene, config_entry.entry_id)
         async_add_entities([entity])
+
     site.register_platform_add_device_callback(async_add_scene, OUTPUT_TYPE.SCENE)
 
 
 class PlejdSceneEntity(PlejdDeviceBaseEntity, Scene):
     """Representation of a Plejd scene."""
+
     _attr_has_entity_name = True
     device_info = None
 

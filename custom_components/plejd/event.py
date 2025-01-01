@@ -1,4 +1,5 @@
 """Support for Plejd events."""
+
 from datetime import timedelta
 
 from homeassistant.components.event import EventEntity, EventDeviceClass
@@ -7,17 +8,26 @@ from homeassistant.core import callback, HomeAssistant
 from homeassistant.util import Throttle
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .plejd_site import  PlejdDevice, PlejdScene, get_plejd_site_from_config_entry, OUTPUT_TYPE, PlejdButton
+from .plejd_site import (
+    PlejdDevice,
+    PlejdScene,
+    get_plejd_site_from_config_entry,
+    OUTPUT_TYPE,
+    PlejdButton,
+)
 from .plejd_entity import PlejdDeviceBaseEntity
 
 import logging
+
 _LOGGER = logging.getLogger(__name__)
 
 SCENE_ACTIVATION_RATE_LIMIT = timedelta(seconds=2)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ):
     """Set up the Plejd events from a config entry."""
     site = get_plejd_site_from_config_entry(hass, config_entry)
@@ -27,17 +37,22 @@ async def async_setup_entry(
         """Add button events from Plejd."""
         entity = PlejdButtonEvent(device, device.button_id)
         async_add_entities([entity])
-    site.register_platform_add_device_callback(async_add_button_event, OUTPUT_TYPE.BUTTON)
+
+    site.register_platform_add_device_callback(
+        async_add_button_event, OUTPUT_TYPE.BUTTON
+    )
 
     @callback
     def async_add_scene_event(scene: PlejdScene):
         entity = PlejdSceneEvent(scene, config_entry.entry_id)
         async_add_entities([entity])
+
     site.register_platform_add_device_callback(async_add_scene_event, OUTPUT_TYPE.SCENE)
 
 
 class PlejdSceneEvent(PlejdDeviceBaseEntity, EventEntity):
     """Event for scenes triggered in Plejd."""
+
     _attr_has_entity_name = True
     _attr_event_types = ["activated"]
     device_info = None
@@ -77,6 +92,7 @@ class PlejdSceneEvent(PlejdDeviceBaseEntity, EventEntity):
 
 class PlejdButtonEvent(PlejdDeviceBaseEntity, EventEntity):
     """Event for button presses in Plejd."""
+
     _attr_has_entity_name = True
     _attr_event_types = ["press", "release"]
     _attr_device_class = EventDeviceClass.BUTTON

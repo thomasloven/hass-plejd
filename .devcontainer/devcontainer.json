@@ -12,22 +12,27 @@
       "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/config/pyplejd,type=bind",
       "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/usr/local/bin/pyplejd,type=bind"
     ],
-    "extensions": [
-      "github.vscode-pull-request-github",
-      "esbenp.prettier-vscode",
-      "spmeesseman.vscode-taskexplorer",
-      "ms-python.python"
-    ],
-    "settings": {
-      "files.eol": "\n",
-      "editor.tabSize": 2,
-      "editor.formatOnPaste": false,
-      "editor.formatOnSave": true,
-      "editor.formatOnType": true,
-      "files.trimTrailingWhitespace": true,
-      "python.linting.pylintEnabled": false,
-      "python.linting.enabled": true,
-      "python.formatting.provider": "black"
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "github.vscode-pull-request-github",
+          "esbenp.prettier-vscode",
+          "spmeesseman.vscode-taskexplorer",
+          "ms-python.python",
+          "ms-python.black-formatter"
+        ],
+        "settings": {
+          "files.eol": "\n",
+          "editor.tabSize": 2,
+          "editor.formatOnPaste": false,
+          "editor.formatOnSave": true,
+          "editor.formatOnType": true,
+          "files.trimTrailingWhitespace": true,
+          "python.linting.pylintEnabled": false,
+          "python.linting.enabled": true,
+          "python.formatting.provider": "black"
+        }
+      }
     },
     "runArgs": ["--network=host"]
 }

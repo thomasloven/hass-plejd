@@ -4,6 +4,7 @@ Provides user initiated configuration flow.
 Discovery of Plejd mesh devices through Bluetooth.
 Reauthentication when issues with cloud api credentials are reported.
 """
+
 import voluptuous as vol
 import logging
 from typing import Any
@@ -19,6 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a Plejd config flow."""
+
     VERSION = 1
 
     def __init__(self) -> None:
@@ -50,20 +52,23 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         if user_input is not None:
             return await self.async_step_user()
 
         return self.async_show_form(
-            step_id="reauth_confirm",
-            data_schema=vol.Schema({})
+            step_id="reauth_confirm", data_schema=vol.Schema({})
         )
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle a flow initiated by user."""
 
         if not bluetooth.async_scanner_count(self.hass, connectable=True):
-                return self.async_abort(reason="bluetooth_not_available")
+            return self.async_abort(reason="bluetooth_not_available")
 
         errors = {}
 
@@ -74,7 +79,10 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
             }
 
             try:
-                await verify_credentials(username=self.config[CONF_USERNAME], password=self.config[CONF_PASSWORD])
+                await verify_credentials(
+                    username=self.config[CONF_USERNAME],
+                    password=self.config[CONF_PASSWORD],
+                )
             except AuthenticationError:
                 errors["base"] = "faulty_credentials"
             except ConnectionError:
@@ -83,27 +91,33 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_picksite()
 
         return self.async_show_form(
-                step_id="user",
-                data_schema=vol.Schema(
-                    {vol.Required(CONF_USERNAME): str, vol.Required(CONF_PASSWORD): str}
-                ),
-                errors=errors
-            )
+            step_id="user",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_USERNAME): str, vol.Required(CONF_PASSWORD): str}
+            ),
+            errors=errors,
+        )
 
-    async def async_step_picksite(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_picksite(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Select Plejd site to control."""
 
         if self.reauth_config_entry:
-            self.config.update({
-                CONF_SITE_ID: self.reauth_config_entry.data[CONF_SITE_ID],
-                CONF_SITE_TITLE: self.reauth_config_entry.data[CONF_SITE_TITLE],
-            })
+            self.config.update(
+                {
+                    CONF_SITE_ID: self.reauth_config_entry.data[CONF_SITE_ID],
+                    CONF_SITE_TITLE: self.reauth_config_entry.data[CONF_SITE_TITLE],
+                }
+            )
 
             self.hass.config_entries.async_update_entry(
                 self.reauth_config_entry,
-                data = self.config,
+                data=self.config,
             )
-            await self.hass.config_entries.async_reload(self.reauth_config_entry.entry_id)
+            await self.hass.config_entries.async_reload(
+                self.reauth_config_entry.entry_id
+            )
 
             return self.async_abort(reason="reauth_successful")
         elif user_input is not None:
@@ -112,14 +126,18 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(siteId)
             self._abort_if_unique_id_configured()
 
-            self.config.update({
-                CONF_SITE_ID: siteId,
-                CONF_SITE_TITLE: self.sites[siteId],
-            })
+            self.config.update(
+                {
+                    CONF_SITE_ID: siteId,
+                    CONF_SITE_TITLE: self.sites[siteId],
+                }
+            )
 
             return self.async_create_entry(title=self.sites[siteId], data=self.config)
 
-        sites = await get_sites(username=self.config[CONF_USERNAME], password=self.config[CONF_PASSWORD])
+        sites = await get_sites(
+            username=self.config[CONF_USERNAME], password=self.config[CONF_PASSWORD]
+        )
 
         options = {}
         for site in sites:
@@ -127,7 +145,6 @@ class PlejdConfigFlow(ConfigFlow, domain=DOMAIN):
             options[site.siteId] = f"{site.title} ({site.deviceCount} devices)"
 
         return self.async_show_form(
-                step_id="picksite",
-                data_schema=vol.Schema({vol.Required("site"): vol.In(options)}),
-            )
-
+            step_id="picksite",
+            data_schema=vol.Schema({vol.Required("site"): vol.In(options)}),
+        )

@@ -1,4 +1,5 @@
 """Diagnostic support for Plejd."""
+
 from typing import TypeVar
 from pyplejd import PlejdManager
 from homeassistant.config_entries import ConfigEntry
@@ -57,16 +58,17 @@ REDACT_KEYS = {
         "userId": True,
         "user": True,
         "site": True,
-    }
+    },
 }
 
-T = TypeVar('T', dict, list)
+T = TypeVar("T", dict, list)
+
 
 def redact(data: T, keys: dict) -> T:
     """Recursively redact potentially sensitive information from Plejd Site data."""
     if isinstance(data, list):
         return [redact(item, keys) for item in data]
-    for key,value in keys.items():
+    for key, value in keys.items():
         if key in data:
             if value is True:
                 data[key] = "<REDACTED>"

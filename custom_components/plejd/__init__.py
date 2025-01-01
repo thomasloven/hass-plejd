@@ -1,7 +1,12 @@
 """Support for Plejd mesh devices."""
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, EVENT_HOMEASSISTANT_STOP, Platform
+from homeassistant.const import (
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    EVENT_HOMEASSISTANT_STOP,
+    Platform,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.device_registry import DeviceEntry
@@ -10,7 +15,15 @@ from .const import DOMAIN, CONF_SITE_ID
 from .plejd_site import PlejdSite, ConnectionError, AuthenticationError
 from .plejd_entity import make_identifier
 
-PLATFORMS = [Platform.LIGHT, Platform.SWITCH, Platform.SCENE, Platform.EVENT, Platform.BINARY_SENSOR, Platform.COVER]
+PLATFORMS = [
+    Platform.LIGHT,
+    Platform.SWITCH,
+    Platform.SCENE,
+    Platform.EVENT,
+    Platform.BINARY_SENSOR,
+    Platform.COVER,
+]
+
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up a Plejd mesh for a config entry."""
@@ -18,12 +31,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     hass.data.setdefault(DOMAIN, {})
 
     site = hass.data[DOMAIN][config_entry.entry_id] = PlejdSite(
-            hass,
-            config_entry,
-            username=config_entry.data.get(CONF_USERNAME),
-            password=config_entry.data.get(CONF_PASSWORD),
-            siteId=config_entry.data.get(CONF_SITE_ID)
-        )
+        hass,
+        config_entry,
+        username=config_entry.data.get(CONF_USERNAME),
+        password=config_entry.data.get(CONF_PASSWORD),
+        siteId=config_entry.data.get(CONF_SITE_ID),
+    )
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
@@ -55,11 +68,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     return unload_ok
 
+
 async def async_remove_config_entry_device(
-        hass: HomeAssistant,
-        config_entry: ConfigEntry,
-        device_entry: DeviceEntry,
-        ) -> bool:
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    device_entry: DeviceEntry,
+) -> bool:
     """Allow removing a Plejd device if orphaned."""
     site: PlejdSite = hass.data[DOMAIN][config_entry.entry_id]
     if not site:

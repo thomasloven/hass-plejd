@@ -16,7 +16,14 @@ from home_assistant_bluetooth import BluetoothServiceInfoBleak
 
 import pyplejd
 from pyplejd import ConnectionError, AuthenticationError
-from pyplejd.interface import PlejdDevice, PlejdScene, PlejdLight, PlejdButton, PlejdMotionSensor, PlejdCover
+from pyplejd.interface import (
+    PlejdDevice,
+    PlejdScene,
+    PlejdLight,
+    PlejdButton,
+    PlejdMotionSensor,
+    PlejdCover,
+)
 from .const import DOMAIN
 from .plejd_entity import register_unknown_device
 
@@ -37,16 +44,18 @@ _LOGGER = logging.getLogger(__name__)
 SITE_DATA_STORE_KEY = "plejd_site_data"
 SITE_DATA_STORE_VERSION = 1
 
+
 class PlejdSite:
     """Controller for a Plejd site mesh."""
 
-    def __init__(self,
+    def __init__(
+        self,
         hass: HomeAssistant,
         config_entry: ConfigEntry,
         username: str,
         password: str,
-        siteId: str
-     ) -> None:
+        siteId: str,
+    ) -> None:
         """Initialize plejd site mesh."""
         self.hass: HomeAssistant = hass
         self.config_entry: ConfigEntry = config_entry
@@ -71,13 +80,15 @@ class PlejdSite:
     def register_platform_add_device_callback(
         self,
         callback: Callable[[PlejdDevice | PlejdScene], None],
-        output_type: OUTPUT_TYPE
+        output_type: OUTPUT_TYPE,
     ) -> None:
         self.add_device_callbacks[output_type].append(callback)
 
     async def start(self) -> None:
         """Setup and connect to plejd site."""
-        if not(site_data_cache := await self.store.async_load()) or not isinstance(site_data_cache, dict):
+        if not (site_data_cache := await self.store.async_load()) or not isinstance(
+            site_data_cache, dict
+        ):
             site_data_cache = {}
 
         cached_site_data = site_data_cache.get(self.credentials["siteId"])
@@ -88,23 +99,26 @@ class PlejdSite:
         self.scenes = self.manager.scenes
 
         for device in self.devices:
-            if (adders := self.add_device_callbacks.get(device.outputType)):
+            if adders := self.add_device_callbacks.get(device.outputType):
                 for adder in adders:
                     adder(device)
             else:
                 if device.outputType:
-                    register_unknown_device(self.hass, device, self.config_entry.entry_id)
+                    register_unknown_device(
+                        self.hass, device, self.config_entry.entry_id
+                    )
 
         for scene in self.scenes:
-            if (adders := self.add_device_callbacks.get(OUTPUT_TYPE.SCENE)):
-              for adder in adders:
-                adder(scene)
-
+            if adders := self.add_device_callbacks.get(OUTPUT_TYPE.SCENE):
+                for adder in adders:
+                    adder(scene)
 
         # Close any stale connections that may be open
         for dev in self.devices:
             if dev.BLEaddress:
-                ble_device = bluetooth.async_ble_device_from_address(self.hass, dev.BLEaddress, True)
+                ble_device = bluetooth.async_ble_device_from_address(
+                    self.hass, dev.BLEaddress, True
+                )
                 if ble_device:
                     await self.manager.close_stale(ble_device)
 
@@ -114,7 +128,7 @@ class PlejdSite:
                 self.hass,
                 self._discovered,
                 bluetooth.match.BluetoothCallbackMatcher(
-                    connectable = True, service_uuid=pyplejd.PLEJD_SERVICE.lower()
+                    connectable=True, service_uuid=pyplejd.PLEJD_SERVICE.lower()
                 ),
                 bluetooth.BluetoothScanningMode.PASSIVE,
             )
@@ -122,20 +136,29 @@ class PlejdSite:
 
         # Run through already discovered devices and add plejds to the manager
         for service_info in bluetooth.async_discovered_service_info(self.hass, True):
-            if pyplejd.PLEJD_SERVICE.lower() in service_info.advertisement.service_uuids:
+            if (
+                pyplejd.PLEJD_SERVICE.lower()
+                in service_info.advertisement.service_uuids
+            ):
                 self._discovered(service_info, connect=False)
 
         # Ping the mesh periodically to maintain the connection
         self.config_entry.async_on_unload(
             async_track_time_interval(
-                self.hass, self._ping, self.manager.ping_interval, name="Plejd keep-alive"
+                self.hass,
+                self._ping,
+                self.manager.ping_interval,
+                name="Plejd keep-alive",
             )
         )
 
         # Check that the mesh clock is in sync once per hour
         self.config_entry.async_on_unload(
             async_track_time_interval(
-                self.hass, self._broadcast_time, timedelta(hours=1), name="Plejd sync time"
+                self.hass,
+                self._broadcast_time,
+                timedelta(hours=1),
+                name="Plejd sync time",
             )
         )
 
@@ -146,15 +169,20 @@ class PlejdSite:
         """Disconnect mesh and tear down site configuration."""
         self.stopping = True
 
-        if not(site_data_cache := await self.store.async_load()) or not isinstance(site_data_cache, dict):
+        if not (site_data_cache := await self.store.async_load()) or not isinstance(
+            site_data_cache, dict
+        ):
             site_data_cache = {}
-        site_data_cache[self.credentials["siteId"]] = await self.manager.get_raw_sitedata()
+        site_data_cache[self.credentials["siteId"]] = (
+            await self.manager.get_raw_sitedata()
+        )
         await self.store.async_save(site_data_cache)
 
         await self.manager.disconnect()
 
-
-    def _discovered(self, service_info: BluetoothServiceInfoBleak, *_, connect: bool = True) -> None:
+    def _discovered(
+        self, service_info: BluetoothServiceInfoBleak, *_, connect: bool = True
+    ) -> None:
         """Register any discovered plejd device with the manager."""
         self.manager.add_mesh_device(service_info.device, service_info.rssi)
         if connect:
@@ -175,7 +203,7 @@ class PlejdSite:
 
 
 def get_plejd_site_from_config_entry(
-        hass: HomeAssistant, config_entry: ConfigEntry
+    hass: HomeAssistant, config_entry: ConfigEntry
 ) -> PlejdSite:
     """Get the Plejd site corresponding to a config entry."""
     return cast(PlejdSite, hass.data[DOMAIN].get(config_entry.entry_id))

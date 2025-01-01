@@ -6,12 +6,19 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .plejd_site import PlejdDevice, get_plejd_site_from_config_entry, OUTPUT_TYPE, PlejdCover
+from .plejd_site import (
+    PlejdDevice,
+    get_plejd_site_from_config_entry,
+    OUTPUT_TYPE,
+    PlejdCover,
+)
 from .plejd_entity import PlejdDeviceBaseEntity
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Plejd lights from a config entry."""
     site = get_plejd_site_from_config_entry(hass, config_entry)
@@ -21,8 +28,8 @@ async def async_setup_entry(
         """Add light from Plejd."""
         entity = PlejdCover(device)
         async_add_entities([entity])
-    site.register_platform_add_device_callback(async_add_cover, OUTPUT_TYPE.COVER)
 
+    site.register_platform_add_device_callback(async_add_cover, OUTPUT_TYPE.COVER)
 
 
 class PlejdCover(PlejdDeviceBaseEntity, CoverEntity):
@@ -62,12 +69,14 @@ class PlejdCover(PlejdDeviceBaseEntity, CoverEntity):
 
     @property
     def is_closing(self) -> bool | None:
-        if not self._data.get("moving"): return False
+        if not self._data.get("moving"):
+            return False
         return not self._data.get("opening")
 
     @property
     def is_opening(self) -> bool | None:
-        if not self._data.get("moving"): return False
+        if not self._data.get("moving"):
+            return False
         return self._data.get("opening")
 
     async def async_open_cover(self, **kwargs: Any) -> None:
@@ -79,5 +88,7 @@ class PlejdCover(PlejdDeviceBaseEntity, CoverEntity):
     async def async_stop_cover(self, **kwargs: Any) -> None:
         await self.device.stop()
 
-    async def async_set_cover_position(self, position: int|None = None, **kwargs: Any) -> None:
+    async def async_set_cover_position(
+        self, position: int | None = None, **kwargs: Any
+    ) -> None:
         await self.device.set_position(position)
