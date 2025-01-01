@@ -15,9 +15,7 @@
     "customizations": {
       "vscode": {
         "extensions": [
-          "github.vscode-pull-request-github",
           "esbenp.prettier-vscode",
-          "spmeesseman.vscode-taskexplorer",
           "ms-python.python",
           "ms-python.black-formatter"
         ],
