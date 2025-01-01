@@ -27,7 +27,7 @@ class OUTPUT_TYPE(str, Enum):
     BUTTON = pyplejd.SENSOR
     MOTION = pyplejd.MOTION
     COVER = pyplejd.COVERABLE
-    SCENE = "scene"
+    SCENE = "SCENE"
     SCENE_EVENT = "scene_event"
     UNKNOWN = pyplejd.UNKNOWN
 
@@ -103,9 +103,10 @@ class PlejdSite:
 
         # Close any stale connections that may be open
         for dev in self.devices:
-            ble_device = bluetooth.async_ble_device_from_address(self.hass, dev.BLEaddress, True)
-            if ble_device:
-                await self.manager.close_stale(ble_device)
+            if dev.BLEaddress:
+                ble_device = bluetooth.async_ble_device_from_address(self.hass, dev.BLEaddress, True)
+                if ble_device:
+                    await self.manager.close_stale(ble_device)
 
         # Register callback for bluetooth discover
         self.config_entry.async_on_unload(

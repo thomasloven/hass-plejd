@@ -18,6 +18,7 @@ class PlejdDeviceBaseEntity(Entity):
 
     def __init__(self, device: PlejdDevice):
         """Set up entity."""
+        super().__init__()
         self.device: PlejdDevice = device
         self.listener = None
         self._data = {}
