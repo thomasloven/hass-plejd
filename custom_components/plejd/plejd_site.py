@@ -184,8 +184,10 @@ class PlejdSite:
         self, service_info: BluetoothServiceInfoBleak, *_, connect: bool = True
     ) -> None:
         """Register any discovered plejd device with the manager."""
-        self.manager.add_mesh_device(service_info.device, service_info.rssi)
-        if connect:
+        new_device = self.manager.add_mesh_device(
+            service_info.device, service_info.rssi
+        )
+        if connect and new_device:
             self.hass.async_create_task(self._ping())
 
     async def _ping(self, *_) -> None:
