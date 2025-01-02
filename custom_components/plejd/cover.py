@@ -7,10 +7,8 @@ from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .plejd_site import (
-    PlejdDevice,
+    dt,
     get_plejd_site_from_config_entry,
-    OUTPUT_TYPE,
-    PlejdCover,
 )
 from .plejd_entity import PlejdDeviceBaseEntity
 
@@ -29,16 +27,17 @@ async def async_setup_entry(
         entity = PlejdCover(device)
         async_add_entities([entity])
 
-    site.register_platform_add_device_callback(async_add_cover, OUTPUT_TYPE.COVER)
+    site.register_platform_add_device_callback(
+        async_add_cover, dt.PlejdDeviceType.COVER
+    )
 
 
 class PlejdCover(PlejdDeviceBaseEntity, CoverEntity):
 
-    def __init__(self, device: PlejdCover) -> None:
+    def __init__(self, device: dt.PlejdCover) -> None:
         """Set up light."""
         CoverEntity.__init__(self)
         PlejdDeviceBaseEntity.__init__(self, device)
-
         self.device: PlejdCover
 
         self._attr_supported_features = (
@@ -48,11 +47,6 @@ class PlejdCover(PlejdDeviceBaseEntity, CoverEntity):
             | CoverEntityFeature.SET_POSITION
             # | CoverEntityFeature.SET_TILT_POSITION
         )
-
-    @property
-    def available(self) -> bool:
-        """Returns whether the light is avaiable."""
-        return self._data.get("available", False)
 
     @property
     def current_cover_position(self) -> int | None:

@@ -6,10 +6,8 @@ from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .plejd_site import (
-    PlejdDevice,
+    dt,
     get_plejd_site_from_config_entry,
-    OUTPUT_TYPE,
-    PlejdLight,
 )
 from .plejd_entity import PlejdDeviceBaseEntity
 
@@ -23,21 +21,24 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_light(device: PlejdDevice) -> None:
+    def async_add_light(device: dt.PlejdLight) -> None:
         """Add light from Plejd."""
         entity = PlejdLight(device)
         async_add_entities([entity])
 
-    site.register_platform_add_device_callback(async_add_light, OUTPUT_TYPE.LIGHT)
+    site.register_platform_add_device_callback(
+        async_add_light, dt.PlejdDeviceType.LIGHT
+    )
 
 
 class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
     """Representation of a Plejd light."""
 
-    def __init__(self, device: PlejdLight) -> None:
+    def __init__(self, device: dt.PlejdLight) -> None:
         """Set up light."""
         LightEntity.__init__(self)
         PlejdDeviceBaseEntity.__init__(self, device)
+        self.device: dt.PlejdLight
 
         self._attr_supported_color_modes: set[ColorMode] = set()
         if device.colortemp:
@@ -48,11 +49,6 @@ class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
             self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
         else:
             self._attr_supported_color_modes.add(ColorMode.ONOFF)
-
-    @property
-    def available(self) -> bool:
-        """Returns whether the light is avaiable."""
-        return self._data.get("available", False)
 
     @property
     def is_on(self) -> bool:

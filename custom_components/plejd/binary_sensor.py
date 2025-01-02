@@ -12,10 +12,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later
 
 from .plejd_site import (
-    PlejdDevice,
+    dt,
     get_plejd_site_from_config_entry,
-    OUTPUT_TYPE,
-    PlejdMotionSensor,
 )
 from .plejd_entity import PlejdDeviceBaseEntity
 
@@ -37,7 +35,7 @@ async def async_setup_entry(
         async_add_entities([entity])
 
     site.register_platform_add_device_callback(
-        async_add_motion_sensor, OUTPUT_TYPE.MOTION
+        async_add_motion_sensor, dt.PlejdDeviceType.MOTION
     )
 
 
@@ -46,10 +44,12 @@ class PlejdMotionSensor(PlejdDeviceBaseEntity, BinarySensorEntity):
 
     _attr_device_class = BinarySensorDeviceClass.MOTION
 
-    def __init__(self, device: PlejdDevice, hass) -> None:
+    def __init__(self, device: dt.PlejdMotionSensor, hass) -> None:
         """Set up motion sensor."""
         BinarySensorEntity.__init__(self)
         PlejdDeviceBaseEntity.__init__(self, device)
+        self.device: dt.PlejdMotionSensor
+
         self.is_on = False
         self.cooldown = None
         self.hass = hass
@@ -61,15 +61,16 @@ class PlejdMotionSensor(PlejdDeviceBaseEntity, BinarySensorEntity):
         self.async_write_ha_state()
 
     @callback
-    def _handle_update(self, _) -> None:
+    def _handle_update(self, state) -> None:
         """When motion is detected from Plejd."""
-        self.is_on = True
-        if self.cooldown:
-            self.cooldown()
-        self.cooldown = async_call_later(
-            self.hass, MOTION_SENSOR_COOLDOWN, self._handle_untrigger
-        )
-        self.async_write_ha_state()
+        if "motion" in state:
+            self.is_on = state.get("motion")
+            if self.is_on:
+                if self.cooldown:
+                    self.cooldown()
+                self.cooldown = async_call_later(
+                    self.hass, MOTION_SENSOR_COOLDOWN, self._handle_untrigger
+                )
 
     async def async_will_remove_from_hass(self) -> None:
         """When entity will be removed from hass."""

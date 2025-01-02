@@ -3,7 +3,6 @@
 from datetime import timedelta
 import logging
 from typing import cast, Callable
-from enum import Enum
 from collections import defaultdict
 
 from homeassistant.components import bluetooth
@@ -14,29 +13,16 @@ from homeassistant.helpers.storage import Store
 
 from home_assistant_bluetooth import BluetoothServiceInfoBleak
 
-import pyplejd
-from pyplejd import ConnectionError, AuthenticationError
-from pyplejd.interface import (
-    PlejdDevice,
-    PlejdScene,
-    PlejdLight,
-    PlejdButton,
-    PlejdMotionSensor,
-    PlejdCover,
+from pyplejd import (
+    PlejdManager,
+    ConnectionError,
+    AuthenticationError,
+    PLEJD_SERVICE,
+    DeviceTypes as dt,
 )
+
 from .const import DOMAIN
 from .plejd_entity import register_unknown_device
-
-
-class OUTPUT_TYPE(str, Enum):
-    LIGHT = pyplejd.LIGHT
-    SWITCH = pyplejd.SWITCH
-    BUTTON = pyplejd.SENSOR
-    MOTION = pyplejd.MOTION
-    COVER = pyplejd.COVERABLE
-    SCENE = "SCENE"
-    SCENE_EVENT = "scene_event"
-    UNKNOWN = pyplejd.UNKNOWN
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,7 +46,7 @@ class PlejdSite:
         self.hass: HomeAssistant = hass
         self.config_entry: ConfigEntry = config_entry
 
-        self.credentials: pyplejd.PlejdCloudCredentials = {
+        self.credentials = {
             "username": username,
             "password": password,
             "siteId": siteId,
@@ -68,10 +54,9 @@ class PlejdSite:
 
         self.store = Store(hass, SITE_DATA_STORE_VERSION, SITE_DATA_STORE_KEY)
 
-        self.manager: pyplejd.PlejdManager = pyplejd.PlejdManager(self.credentials)
+        self.manager: PlejdManager = PlejdManager(**self.credentials)
 
-        self.devices: list[PlejdDevice] = []
-        self.scenes: list[PlejdScene] = []
+        self.devices: list[dt.PlejdDevice] = []
 
         self.stopping = False
 
@@ -79,8 +64,8 @@ class PlejdSite:
 
     def register_platform_add_device_callback(
         self,
-        callback: Callable[[PlejdDevice | PlejdScene], None],
-        output_type: OUTPUT_TYPE,
+        callback: Callable[[dt.PlejdDevice], None],
+        output_type: dt.PlejdDeviceType,
     ) -> None:
         self.add_device_callbacks[output_type].append(callback)
 
@@ -96,7 +81,6 @@ class PlejdSite:
         await self.manager.init(cached_site_data)
 
         self.devices = self.manager.devices
-        self.scenes = self.manager.scenes
 
         for device in self.devices:
             if adders := self.add_device_callbacks.get(device.outputType):
@@ -107,11 +91,6 @@ class PlejdSite:
                     register_unknown_device(
                         self.hass, device, self.config_entry.entry_id
                     )
-
-        for scene in self.scenes:
-            if adders := self.add_device_callbacks.get(OUTPUT_TYPE.SCENE):
-                for adder in adders:
-                    adder(scene)
 
         # Close any stale connections that may be open
         for dev in self.devices:
@@ -128,7 +107,7 @@ class PlejdSite:
                 self.hass,
                 self._discovered,
                 bluetooth.match.BluetoothCallbackMatcher(
-                    connectable=True, service_uuid=pyplejd.PLEJD_SERVICE.lower()
+                    connectable=True, service_uuid=PLEJD_SERVICE.lower()
                 ),
                 bluetooth.BluetoothScanningMode.PASSIVE,
             )
@@ -136,10 +115,7 @@ class PlejdSite:
 
         # Run through already discovered devices and add plejds to the manager
         for service_info in bluetooth.async_discovered_service_info(self.hass, True):
-            if (
-                pyplejd.PLEJD_SERVICE.lower()
-                in service_info.advertisement.service_uuids
-            ):
+            if PLEJD_SERVICE.lower() in service_info.advertisement.service_uuids:
                 self._discovered(service_info, connect=False)
 
         # Ping the mesh periodically to maintain the connection

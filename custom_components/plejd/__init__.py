@@ -13,7 +13,6 @@ from homeassistant.helpers.device_registry import DeviceEntry
 
 from .const import DOMAIN, CONF_SITE_ID
 from .plejd_site import PlejdSite, ConnectionError, AuthenticationError
-from .plejd_entity import make_identifier
 
 PLATFORMS = [
     Platform.LIGHT,
@@ -81,7 +80,7 @@ async def async_remove_config_entry_device(
     for device in site.devices:
         if device.hidden:
             continue
-        if make_identifier(device) in device_entry.identifiers:
+        if device.identifier in device_entry.identifiers:
             return False
 
     return True
