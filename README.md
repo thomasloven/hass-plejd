@@ -14,9 +14,8 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 - Make sure you have a working Bluetooth integration in Home Assistant (a bluetooth proxy should work too)
 - Make sure you have no other plejd custom components or add-ons running.
 - Install the integration:
-
-  - Either: Download the `plejd` directory and place in your `<config>/custom_components`.
-  - Or: Add this repo (`thomasloven/hass_plejd`) as a custom repository in HACS, add the integration from HACS
+- Using HACS: [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thomasloven&repository=hass-plejd&category=integration) or search for `Plejd`.
+- Manually: Download the `plejd` directory and place in your `<config>/custom_components`.
 
 - Restart Home Assistant
 - Hopefully, your Plejd mesh will be auto discovered and you should see a message popping up in your integrations page.
@@ -24,21 +23,11 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 ## Supported devices
 
-- All known Plejd dimmers and relays should work.
+- All known Plejd lights, dimmers and relays should work.
 
-  - DAL-01 is still largely untested. If you have a DAL-01 connected to a DALI bus with more than one device, or some non-light devices, please get in touch.
+- All buttons connected to a device or WPH-01 should work and register events when the buttons are pressed.
 
-- All known Plejd lights should work
-
-- Color temperature is supported for DWN-01 and DWN-02 (and possibly LED-75 and DAL-01, though this is untested)
-
-  - Note that Plejd devices do not report back changes to the color temperature, so if you change temperature in Home Assistant, that will not be reflected in the plejd app and vice versa. Home Assistant may also "forget" what color temperature was set from time to time.
-
-- Pushbutton WPH-01 should work.
-
-  - An event entity will be triggered when each button is pushed
-
-- Motion sensor WMS-01 should work
+  - If the button is held for a while, a release even will be registered too. The required hold time doesn't seem entirly consistent, though...
 
 - Rotary dimmer WRT-01 should register and fire events when pushed.
 
@@ -54,6 +43,10 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 - EXT-01 doesn't do anything
 
 - RTR-01 Is not actually a device but an addition to other devices.
+
+## Cloud connection
+
+The integration will fetch the device list and - most importantly - the cryptographic keys for the BLE communication from the Plejd cloud at launch. After that initial download, no communication is made with the cloud. All controll is local over bluetooth.
 
 ## Other integrations
 
@@ -71,5 +64,12 @@ I could not have made this one without their great job in decoding the Plejd clo
 | [homey-plejd](https://github.com/emilohman/homey-plejd)            | [@emilohman](https://github.com/emilohman)                                                                                                                          | For Homey                                                                                                                                                                                                                                                 |
 | [homebridge-plejd](https://github.com/blommegard/homebridge-plejd) | [@blommegard](https://github.com/blommegard)                                                                                                                        | For Homebridge                                                                                                                                                                                                                                            |
 
-The Plejd name and logo is copyrighted and trademarked and belongs to Plejd AB.
+The Plejd name and logo is copyrighted and trademarked and belongs to Plejd AB. \
 The author of this repository is not associated with Plejd AB.
+
+> Sidenote: This integration makes use of a cloud API made by Plejd for use by their smartphone apps.
+> The use of the API in this integration is not endorsed by Plejd, but I have been in communication with representatives of the company, and they have informally indicated an intent to look the other way as long as the API usage does not become excessive.
+>
+> In those days of clouds locking down and free services becoming paid, this is fantastic!
+>
+> Thanks, Plejd!
