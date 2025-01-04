@@ -58,6 +58,7 @@ class PlejdSite:
 
         self.devices: list[dt.PlejdDevice] = []
 
+        self.started = False
         self.stopping = False
 
         self.add_device_callbacks = defaultdict(list)
@@ -138,6 +139,8 @@ class PlejdSite:
             )
         )
 
+        self.started = True
+
         self.hass.async_create_task(self._ping())
         self.hass.async_create_task(self._broadcast_time())
 
@@ -168,7 +171,7 @@ class PlejdSite:
 
     async def _ping(self, *_) -> None:
         """Ping the plejd mesh to connect or maintain the connection."""
-        if self.stopping:
+        if self.stopping or not self.started:
             return
         if not await self.manager.ping():
             _LOGGER.debug("Ping failed")

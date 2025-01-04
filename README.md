@@ -9,7 +9,7 @@ This integration requires a [Bluetooth](https://www.home-assistant.io/integratio
 Using an [EspHome Bluetooth Proxy](https://esphome.io/projects/?type=bluetooth) is recommended, but Shelly proxies will not work.
 If you make your own esphome configuration, make sure the [`bluetooth_proxy`](https://esphome.io/components/bluetooth_proxy) has `active` set to `True`.
 
-## Installation for testing
+## Installation
 
 - Make sure you have a working Bluetooth integration in Home Assistant (a bluetooth proxy should work too)
 - Make sure you have no other plejd custom components or add-ons running.
@@ -47,6 +47,22 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 ## Cloud connection
 
 The integration will fetch the device list and - most importantly - the cryptographic keys for the BLE communication from the Plejd cloud at launch. After that initial download, no communication is made with the cloud. All controll is local over bluetooth.
+
+## Debug logging
+
+There are some loggers which may be useful for troubleshooting. They are used by adding the following to your `configuration.yaml` (pick the `pyplejd.` ones which are relevant to you):
+
+```yaml
+logger:
+  default: warning
+  logs:
+    pyplejd.device_list: debug # Will output the list of devices pulled from the cloud - also shows the mesh index and ble address
+    pyplejd.ble.connection: debug # Will show the process of connecting to the BLE mesh - this could give information if all your devices are shown but not available
+    pyplejd.ble.device.123: debug # Will show the BLE traffic to and from the device with mesh index 123 - you can find the mesh index from the Plejd app or from the device_list debug output above
+    pyplejd.ble.device.SCN: debug # Will show the BLE traffic related to Scenes
+    pyplejd.ble.device.TME: debug # Will show the BLE traffic related to timekeeping
+    pyplejd.ble.device.all: debug # Will show the BLE traffic to and from ALL devices
+```
 
 ## Other integrations
 
