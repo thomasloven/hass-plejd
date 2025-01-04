@@ -44,7 +44,7 @@ class PlejdSwitch(PlejdDeviceBaseEntity, SwitchEntity):
 
     async def async_turn_on(self, **_) -> None:
         """Turn the switch on."""
-        await self.device.turn_on(None)
+        await self.device.turn_on()
 
     async def async_turn_off(self, **_) -> None:
         """Turn the switch off."""
