@@ -12,3 +12,4 @@ custom_components/*/
 !.devcontainer/
 !.vscode/
 !.github/
+!parse_json.py
