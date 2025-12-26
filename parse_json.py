@@ -1,11 +1,11 @@
-from pyplejd.cloud import PlejdCloudSite, site_details as sd
-from pyplejd.interface import outputDeviceClass, inputDeviceClass, sceneDeviceClass
+from pyplejd.pyplejd.cloud import PlejdCloudSite, site_details as sd
+from pyplejd.pyplejd.interface import (
+    outputDeviceClass,
+    inputDeviceClass,
+    sceneDeviceClass,
+)
 import json
 import sys
-
-fn = "site_details_wms01.json"
-fn = "site_details_wms01.json"
-fn = "site_details_gwy.json"
 
 
 def main(filename):

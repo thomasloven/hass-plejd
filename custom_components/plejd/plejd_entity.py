@@ -24,13 +24,15 @@ class PlejdDeviceBaseEntity(Entity):
     @property
     def device_info(self):
         """Return a device description for device registry."""
+        mac = self.device.device_identifier[0]
         return {
             "identifiers": {(DOMAIN, *self.device.device_identifier)},
             "name": self.device.name,
             "manufacturer": MANUFACTURER,
-            "model": self.device.hardware,
+            "model": f"{self.device.hardware} ({self.device.ble_mac})",
             "suggested_area": self.device.room,
             "sw_version": str(self.device.firmware),
+            "connections": {(dr.CONNECTION_BLUETOOTH, self.device.ble_mac)}
         }
 
     @property
