@@ -65,7 +65,7 @@ class PlejdSite:
 
         self.add_device_callbacks = defaultdict(list)
 
-        self.blacklist = config_entry.data.get("blacklist", set())
+        self.blacklist = set(config_entry.data.get("blacklist", set()))
         self.manager.blacklist = self.blacklist
 
     def register_platform_add_device_callback(
@@ -171,6 +171,9 @@ class PlejdSite:
         await self.manager.disconnect()
 
     async def update_blacklist(self) -> None:
+        data = self.config_entry.data.copy()
+        data["blacklist"] = self.blacklist
+        self.hass.config_entries.async_update_entry(self.config_entry, data=data)
         await self.manager.set_blacklist(self.blacklist)
 
     def _discovered(
