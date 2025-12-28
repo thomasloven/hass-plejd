@@ -48,6 +48,19 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 The integration will fetch the device list and - most importantly - the cryptographic keys for the BLE communication from the Plejd cloud at launch. After that initial download, no communication is made with the cloud. All controll is local over bluetooth.
 
+## BLE meshing
+
+Plejd works by creating a Bluetooth BLE mesh between all your devices.
+
+Each device can make two consecutive Bluetooth connections - one to the mesh itself and one to a controlling device such as Home Assistant or the Plejd phone app.
+That means if you only have one Plejd device, you cannot controll it through Home Assistant and the App at the same time.
+
+It also means that Home Assistant is connecting into the mesh through a single device - I call this the "Gateway".
+
+On rare occasions, a device may somehow lose the ability to form two connections. That means if this device is the Gateway you cannot controll any other devices in the mesh. If that happens, you can disallow a device from becomming the Gateway in the device settings.
+
+I don't know why this happens or how to fix it, but a factory reset may or may not work.
+
 ## Debug logging
 
 There are some loggers which may be useful for troubleshooting. They are used by adding the following to your `configuration.yaml` (pick the `pyplejd.` ones which are relevant to you):
