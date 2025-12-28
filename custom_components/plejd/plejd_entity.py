@@ -98,6 +98,11 @@ class PlejdDeviceDiagnosticEntity(PlejdDeviceBaseEntity):
     def available(self):
         return True
 
+    @callback
+    def _handle_update(self) -> None:
+        """When device state is updated from Plejd"""
+        pass
+
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
 

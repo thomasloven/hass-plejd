@@ -7,12 +7,8 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.const import EntityCategory
 
-from .plejd_site import (
-    dt,
-    get_plejd_site_from_config_entry,
-)
+from .plejd_site import dt, get_plejd_site_from_config_entry, PlejdSite
 from .plejd_entity import PlejdDeviceDiagnosticEntity
 
 
@@ -25,7 +21,7 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_diagnostic_sensors(device: dt.PlejdDevice):
+    def async_add_diagnostic_sensors(device: dt.PlejdDevice, site: PlejdSite):
         """Add diagnostic sensors from Plejd."""
         last_seen = PlejdLastSeenSensor(device, hass)
         rssi = PlejdRSSISensor(device, hass)

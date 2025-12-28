@@ -8,10 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .plejd_site import (
-    dt,
-    get_plejd_site_from_config_entry,
-)
+from .plejd_site import dt, get_plejd_site_from_config_entry, PlejdSite
 from .plejd_entity import PlejdDeviceBaseEntity, PlejdDeviceDiagnosticEntity
 
 
@@ -24,7 +21,7 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_motion_sensor(device: dt.PlejdMotionSensor):
+    def async_add_motion_sensor(device: dt.PlejdMotionSensor, site: PlejdSite):
         """Add motion sensor from Plejd."""
         entity = PlejdMotionSensor(device, hass)
         async_add_entities([entity])
@@ -34,7 +31,7 @@ async def async_setup_entry(
     )
 
     @callback
-    def async_add_diagnostic_sensors(device: dt.PlejdDevice):
+    def async_add_diagnostic_sensors(device: dt.PlejdDevice, site: PlejdSite):
         """Add diagnostic sensors from Plejd."""
         gateway = PlejdGatewaySensor(device, hass)
         connectable = PlejdConnectableSensor(device, hass)

@@ -5,10 +5,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .plejd_site import (
-    dt,
-    get_plejd_site_from_config_entry,
-)
+from .plejd_site import dt, get_plejd_site_from_config_entry, PlejdSite
 from .plejd_entity import PlejdDeviceBaseEntity
 
 
@@ -21,7 +18,7 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_light(device: dt.PlejdLight) -> None:
+    def async_add_light(device: dt.PlejdLight, site: PlejdSite) -> None:
         """Add light from Plejd."""
         entity = PlejdLight(device)
         async_add_entities([entity])

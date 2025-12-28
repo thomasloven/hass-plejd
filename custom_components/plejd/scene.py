@@ -2,7 +2,7 @@ from homeassistant.components.scene import Scene
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
 
-from .plejd_site import dt, get_plejd_site_from_config_entry
+from .plejd_site import dt, get_plejd_site_from_config_entry, PlejdSite
 from .plejd_entity import PlejdDeviceBaseEntity
 
 
@@ -13,7 +13,7 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_scene(scene: dt.PlejdScene) -> None:
+    def async_add_scene(scene: dt.PlejdScene, site: PlejdSite) -> None:
         """Add light from Plejd."""
         if scene.hidden:
             return

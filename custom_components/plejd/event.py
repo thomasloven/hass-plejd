@@ -8,10 +8,7 @@ from homeassistant.core import callback, HomeAssistant
 from homeassistant.util import Throttle
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .plejd_site import (
-    dt,
-    get_plejd_site_from_config_entry,
-)
+from .plejd_site import dt, get_plejd_site_from_config_entry, PlejdSite
 from .plejd_entity import PlejdDeviceBaseEntity
 
 import logging
@@ -30,7 +27,7 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_button_event(device: dt.PlejdButton):
+    def async_add_button_event(device: dt.PlejdButton, site: PlejdSite):
         """Add button events from Plejd."""
         entity = PlejdButtonEvent(device)
         async_add_entities([entity])
@@ -40,7 +37,7 @@ async def async_setup_entry(
     )
 
     @callback
-    def async_add_scene_event(scene: dt.PlejdScene):
+    def async_add_scene_event(scene: dt.PlejdScene, site: PlejdSite):
         entity = PlejdSceneEvent(scene)
         async_add_entities([entity])
 

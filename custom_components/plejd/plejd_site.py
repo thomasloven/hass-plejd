@@ -34,6 +34,8 @@ SITE_DATA_STORE_VERSION = 1
 class PlejdSite:
     """Controller for a Plejd site mesh."""
 
+    blacklist: set
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -63,9 +65,12 @@ class PlejdSite:
 
         self.add_device_callbacks = defaultdict(list)
 
+        self.blacklist = config_entry.data.get("blacklist", set())
+        self.manager.blacklist = self.blacklist
+
     def register_platform_add_device_callback(
         self,
-        callback: Callable[[dt.PlejdDevice], None],
+        callback: Callable[[dt.PlejdDevice, "PlejdSite"], None],
         output_type: dt.PlejdDeviceType,
     ) -> None:
         self.add_device_callbacks[output_type].append(callback)
@@ -87,7 +92,7 @@ class PlejdSite:
         for device in self.devices:
             if adders := self.add_device_callbacks.get(device.outputType):
                 for adder in adders:
-                    adder(device)
+                    adder(device, self)
             else:
                 if device.outputType:
                     register_unknown_device(
@@ -96,7 +101,7 @@ class PlejdSite:
             if device.is_primary and device.hw and device.hw not in registered_hw:
                 if adders := self.add_device_callbacks.get("HW"):
                     for adder in adders:
-                        adder(device)
+                        adder(device, self)
                 registered_hw.add(device.hw)
 
         # Close any stale connections that may be open
@@ -164,6 +169,9 @@ class PlejdSite:
         await self.store.async_save(site_data_cache)
 
         await self.manager.disconnect()
+
+    async def update_blacklist(self) -> None:
+        await self.manager.set_blacklist(self.blacklist)
 
     def _discovered(
         self, service_info: BluetoothServiceInfoBleak, *_, connect: bool = True
