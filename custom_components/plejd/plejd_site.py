@@ -82,6 +82,7 @@ class PlejdSite:
         await self.manager.init(cached_site_data)
 
         self.devices = self.manager.devices
+        registered_hw = set()
 
         for device in self.devices:
             if adders := self.add_device_callbacks.get(device.outputType):
@@ -92,6 +93,11 @@ class PlejdSite:
                     register_unknown_device(
                         self.hass, device, self.config_entry.entry_id
                     )
+            if device.is_primary and device.hw and device.hw not in registered_hw:
+                if adders := self.add_device_callbacks.get("HW"):
+                    for adder in adders:
+                        adder(device)
+                registered_hw.add(device.hw)
 
         # Close any stale connections that may be open
         for dev in self.devices:
