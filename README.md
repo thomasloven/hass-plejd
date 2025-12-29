@@ -23,6 +23,9 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
 
 ## Supported devices
 
+**IMPORTANT!**
+In recent updates to Home Assistant something has happened to the bluetooth stack. If you experience issues like buttons spamming events into Home Assistant (like hundreds of presses per second) please update the firmware of all your Plejd devices through the Plejd mobile app.
+
 - All known Plejd lights, dimmers and relays should work.
 
 - All buttons connected to a device or WPH-01 should work and register events when the buttons are pressed.
@@ -34,7 +37,10 @@ If you make your own esphome configuration, make sure the [`bluetooth_proxy`](ht
   - Rotations are **not** registered. This is a limitation in how Plejd works. Rotation events are not actually sent to the mesh, but directly to whatever device the WRT-01 is paired to. Therefore it is impossible to listen in on them.
 
 - Plejd Scenes should show up and be triggerable in Home Assistant (unless hidden in the Plejd app).
+
   - An event entity will be triggered when they are activated (even if hidden in the Plejd app).
+
+- Thermostat TMR-01 support is currently experimental.
 
 ## Unsupported devices
 
