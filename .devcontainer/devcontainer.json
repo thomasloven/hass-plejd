@@ -4,7 +4,8 @@
     "postCreateCommand": "sudo -E container setup-dev",
     "containerEnv": {
       "DEVCONTAINER": "1",
-      "TZ": "Europe/Stockholm"
+      "TZ": "Europe/Stockholm",
+      "PYTHONPATH": "/usr/src/homeassistant:/workspaces/hass-plejd/pyplejd"
     },
     "forwardPorts": [8123],
     "mounts": [

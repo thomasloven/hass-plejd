@@ -1,5 +1,5 @@
-from pyplejd.pyplejd.cloud import PlejdCloudSite, site_details as sd
-from pyplejd.pyplejd.interface import (
+from pyplejd.cloud import PlejdCloudSite, site_details as sd
+from pyplejd.interface import (
     outputDeviceClass,
     inputDeviceClass,
     sceneDeviceClass,
