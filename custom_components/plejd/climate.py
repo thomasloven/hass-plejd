@@ -50,6 +50,7 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
         ClimateConst.PRESET_HOME,
     ]
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_target_temperature_step = 1.0
     _attr_hvac_modes = [
         HVACMode.OFF,
         HVACMode.HEAT,
