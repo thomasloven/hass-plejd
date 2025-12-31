@@ -51,13 +51,21 @@ class PlejdMotionSensor(PlejdDeviceBaseEntity, BinarySensorEntity):
         PlejdDeviceBaseEntity.__init__(self, device)
         self.device: dt.PlejdMotionSensor
 
+        self._battery = None
+        self._bright = None
         self.is_on = False
 
     @callback
     def _handle_update(self, state) -> None:
         """When motion is detected from Plejd."""
+        self._battery = state.get("battery", None)
+        self._bright = state.get("bright", None)
         if state.get("motion", False) is not None:
             self.is_on = state.get("motion", False)
+
+    @property
+    def extra_state_attributes(self):
+        return {"battery": self._battery, "bright": self._bright}
 
 
 class PlejdGatewaySensor(PlejdDeviceDiagnosticEntity, BinarySensorEntity):
