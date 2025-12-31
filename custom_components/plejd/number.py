@@ -29,13 +29,17 @@ async def async_setup_entry(
 
 
 class PlejdClimate(PlejdDeviceBaseEntity, NumberEntity):
+
     _attr_unit_of_measurement = "%"
     _attr_native_min_value = 0
     _attr_native_max_value = 100
     _attr_native_step = 1
 
     def __init__(self, device: dt.PlejdThermostat) -> None:
-        super().__init__(device)
+        NumberEntity.__init__(self)
+        PlejdDeviceBaseEntity.__init__(self, device)
+        self.device: dt.PlejdThermostat
+
         self._attr_native_min_value = self.device.limits.get("min", 0)
         self._attr_native_max_value = self.device.limits.get("max", 100)
         self._attr_native_step = self.device.limits.get("step", 5)
@@ -46,4 +50,3 @@ class PlejdClimate(PlejdDeviceBaseEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self.device.set_target_temp(value)
-
