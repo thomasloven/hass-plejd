@@ -23,6 +23,7 @@ PLATFORMS = [
     Platform.COVER,
     Platform.SENSOR,
     Platform.CLIMATE,
+    Platform.NUMBER,
 ]
 
 
