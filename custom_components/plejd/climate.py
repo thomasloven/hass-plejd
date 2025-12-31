@@ -5,6 +5,8 @@ from homeassistant.components.climate import (
     ClimateEntityFeature,
     const as ClimateConst,
     ATTR_TEMPERATURE,
+    HVACMode,
+    HVACAction,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback, HomeAssistant
@@ -24,13 +26,13 @@ async def async_setup_entry(
     site = get_plejd_site_from_config_entry(hass, config_entry)
 
     @callback
-    def async_add_light(device: dt.PlejdThermostat, site: PlejdSite) -> None:
+    def async_add_climate(device: dt.PlejdThermostat, site: PlejdSite) -> None:
         """Add light from Plejd."""
         entity = PlejdClimate(device)
         async_add_entities([entity])
 
     site.register_platform_add_device_callback(
-        async_add_light, dt.PlejdDeviceType.CLIMATE
+        async_add_climate, dt.PlejdDeviceType.CLIMATE
     )
 
 
@@ -49,8 +51,8 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
     ]
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_hvac_modes = [
-        ClimateConst.HVACMode.OFF,
-        ClimateConst.HVACMode.HEAT,
+        HVACMode.OFF,
+        HVACMode.HEAT,
     ]
 
     def __init__(self, device: dt.PlejdThermostat) -> None:
@@ -58,6 +60,9 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
         ClimateEntity.__init__(self)
         PlejdDeviceBaseEntity.__init__(self, device)
         self.device: dt.PlejdThermostat
+
+        self.min_temp = self.device.limits.get("min", 7)
+        self.max_temp = self.device.limits.get("max", 35)
 
     @property
     def is_on(self) -> bool:
@@ -70,11 +75,19 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
         await self.device.turn_off()
 
     @property
-    def hvac_mode(self) -> str:
-        return ClimateConst.HVACMode.HEAT if self.is_on else ClimateConst.HVACMode.OFF
+    def hvac_action(self) -> HVACAction | None:
+        if not self.is_on:
+            return HVACAction.OFF
+        return (
+            HVACAction.HEATING if self._data.get("heating", False) else HVACAction.IDLE
+        )
+
+    @property
+    def hvac_mode(self) -> HVACMode:
+        return HVACMode.HEAT if self.is_on else HVACMode.OFF
 
     async def async_set_hvac_mode(self, hvac_mode):
-        if hvac_mode == ClimateConst.HVACMode.HEAT:
+        if hvac_mode == HVACMode.HEAT:
             await self.async_turn_on()
         else:
             await self.async_turn_off()
