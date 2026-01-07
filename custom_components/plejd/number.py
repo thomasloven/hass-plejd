@@ -22,13 +22,13 @@ async def async_setup_entry(
     @callback
     def async_add_number(device: dt.PlejdThermostat, site: PlejdSite) -> None:
         """Add light from Plejd."""
-        entity = PlejdClimate(device)
+        entity = PlejdPWMClimate(device)
         async_add_entities([entity])
 
     site.register_platform_add_device_callback(async_add_number, dt.PlejdDeviceType.PWM)
 
 
-class PlejdClimate(PlejdDeviceBaseEntity, NumberEntity):
+class PlejdPWMClimate(PlejdDeviceBaseEntity, NumberEntity):
 
     _attr_unit_of_measurement = "%"
     _attr_native_min_value = 0
