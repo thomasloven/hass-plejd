@@ -7,30 +7,35 @@ Connects to your [Plejd](https://www.plejd.com) devices using your Home Assistan
 This integration requires a [Bluetooth](https://www.home-assistant.io/integrations/bluetooth/) adapter which supports at least one Active connections.
 
 Using an [EspHome Bluetooth Proxy](https://esphome.io/projects/?type=bluetooth) is recommended, but Shelly proxies will not work.
-If you make your own esphome configuration, make sure the [`bluetooth_proxy`](https://esphome.io/components/bluetooth_proxy) has `active` set to `True`.
+If you make your own esphome configuration, make sure the [`bluetooth_proxy`](https://esphome.io/components/bluetooth_proxy) has `active` set to `True` (default in recent versions).
 
 ## Installation
 
-- Make sure you have a working Bluetooth integration in Home Assistant (a bluetooth proxy should work too)
+- Make sure you have a working Bluetooth integration in Home Assistant
 - Make sure you have no other plejd custom components or add-ons running.
 - Install the integration:
 - Using HACS: [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thomasloven&repository=hass-plejd&category=integration) or search for `Plejd`.
 - Manually: Download the `plejd` directory and place in your `<config>/custom_components`.
 
 - Restart Home Assistant
-- Hopefully, your Plejd mesh will be auto discovered and you should see a message popping up in your integrations page.
+- Hopefully, your Plejd mesh will be auto discovered and you should see a message popping up in your integrations page (I recommend waiting for this rather than adding the integration manually - that way you know the Bluetooth mesh is seen by Home Assistant).
 - Log in with the credentials you use in the Plejd app when prompted (email address and password)
 
 ## Supported devices
 
 **IMPORTANT!**
+
 In recent updates to Home Assistant something has happened to the bluetooth stack. If you experience issues like buttons spamming events into Home Assistant (like hundreds of presses per second) please update the firmware of all your Plejd devices through the Plejd mobile app.
+
+The current latest firmware for all devices seems to be `4.xx.xx` or higher.
+
+---
 
 - All known Plejd lights, dimmers and relays should work.
 
 - All buttons connected to a device or WPH-01 should work and register events when the buttons are pressed.
 
-  - If the button is held for a while, a release even will be registered too. The required hold time doesn't seem entirly consistent, though...
+  - If the button is held for a while, a release even will be registered too. The required hold time doesn't seem entirely consistent, though...
 
 - Rotary dimmer WRT-01 should register and fire events when pushed.
 
@@ -40,13 +45,11 @@ In recent updates to Home Assistant something has happened to the bluetooth stac
 
   - An event entity will be triggered when they are activated (even if hidden in the Plejd app).
 
-- Thermostat TMR-01 support is currently experimental.
+- Thermostat TMR-01 seems to work.
 
 ## Unsupported devices
 
 - GWY-01 doesn't do anything.
-
-- EXT-01 doesn't do anything
 
 - RTR-01 Is not actually a device but an addition to other devices.
 
@@ -56,16 +59,22 @@ The integration will fetch the device list and - most importantly - the cryptogr
 
 ## BLE meshing
 
-Plejd works by creating a Bluetooth BLE mesh between all your devices.
+Plejd works by creating a Bluetooth BLE mesh between all the devices in your `System`.
 
-Each device can make two consecutive Bluetooth connections - one to the mesh itself and one to a controlling device such as Home Assistant or the Plejd phone app.
-That means if you only have one Plejd device, you cannot controll it through Home Assistant and the App at the same time.
+<img width="425" height="207" alt="Image" src="https://github.com/user-attachments/assets/94725ac6-3f65-485a-b2ba-27d46fed170e" />
 
-It also means that Home Assistant is connecting into the mesh through a single device - I call this the "Gateway".
+A controller (e.g. Home Assistant, a Plejd GQY-01 or the Plejd mobile app) can connect to the system using the cryptographic key stored in the cloud.
+The controller connects to one mains powered device in the System using BLE and needs to maintain an active connection (red arrow in figure below). This device is called the Gateway by this integration.
 
-On rare occasions, a device may somehow lose the ability to form two connections. That means if this device is the Gateway you cannot controll any other devices in the mesh. If that happens, you can disallow a device from becomming the Gateway in the device settings.
+<img width="557" height="246" alt="Image" src="https://github.com/user-attachments/assets/39f12542-a0e7-4e32-86fc-9087e98355ec" />
 
-I don't know why this happens or how to fix it, but a factory reset may or may not work.
+Each Plejd device can maintain only One connection to a controller (red arrow) at a time, and this integration can open only One connection to a System.
+
+This means:
+
+- If you only have one _mains powered_ Plejd device, you _can not_ controll it both from Home Assistant and the Plejd app or GWY-01 at the same time.
+- If you have several Plejd devices that are so far from each other that they cannot form a BLE mesh (e.g. some in your house but one in the garage) you can not fix this just by adding a second BTproxy. You will need to first divide the devices into separate Systems in the Plejd app. Or add more Plejd devices to strengthen the mesh
+- On rare occasions some devices will lose connection to the mesh if they act as Gateway. I don't know why this happens, but sometimes a factory reset of the device works. Otherwise you can disallow the device to act as Gateway from the device settings in Home Assistant.
 
 ## Debug logging
 
@@ -102,9 +111,11 @@ I could not have made this one without their great job in decoding the Plejd clo
 The Plejd name and logo is copyrighted and trademarked and belongs to Plejd AB. \
 The author of this repository is not associated with Plejd AB.
 
-> Sidenote: This integration makes use of a cloud API made by Plejd for use by their smartphone apps.
+> **Sidenote:**
+>
+> This integration makes use of a cloud API made by Plejd for use by their smartphone apps.
 > The use of the API in this integration is not endorsed by Plejd, but I have been in communication with representatives of the company, and they have informally indicated an intent to look the other way as long as the API usage does not become excessive.
 >
-> In those days of clouds locking down and free services becoming paid, this is fantastic!
+> In this time of clouds locking down and free services becoming paid, this is fantastic!
 >
 > Thanks, Plejd!
