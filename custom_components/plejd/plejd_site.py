@@ -191,7 +191,25 @@ class PlejdSite:
         if self.stopping or not self.started:
             return
         if not await self.manager.ping():
-            _LOGGER.debug("Ping failed")
+            _LOGGER.warning("Plejd ping failed, attempting to reconnect")
+            await self._reconnect()
+
+    async def _reconnect(self) -> None:
+        """Attempt to reconnect to the Plejd mesh by rediscovering BLE devices."""
+        for dev in self.devices:
+            if dev.BLEaddress:
+                ble_device = bluetooth.async_ble_device_from_address(
+                    self.hass, dev.BLEaddress, True
+                )
+                if ble_device:
+                    await self.manager.close_stale(ble_device)
+
+        for service_info in bluetooth.async_discovered_service_info(self.hass, True):
+            if PLEJD_SERVICE.lower() in service_info.advertisement.service_uuids:
+                self.manager.add_mesh_device(service_info.device, service_info.rssi)
+
+        if not await self.manager.ping():
+            _LOGGER.warning("Plejd reconnection failed")
 
     async def _broadcast_time(self, *_) -> None:
         """Check that the mesh clock is in sync."""
