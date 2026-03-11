@@ -1,12 +1,19 @@
 """Plejd entity helpers."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import EntityCategory
 
 from .const import DOMAIN, MANUFACTURER
-from .plejd_site import dt, PlejdSite
+from .plejd_site import dt
+
+if TYPE_CHECKING:
+    from .plejd_site import PlejdSite
 
 
 class PlejdDeviceBaseEntity(Entity):
