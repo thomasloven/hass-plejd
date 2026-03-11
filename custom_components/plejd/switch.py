@@ -21,7 +21,7 @@ async def async_setup_entry(
     @callback
     def async_add_switch(device: dt.PlejdRelay, site: PlejdSite) -> None:
         """Add light from Plejd."""
-        entity = PlejdSwitch(device)
+        entity = PlejdSwitch(device, site)
         async_add_entities([entity])
 
     site.register_platform_add_device_callback(
@@ -41,10 +41,10 @@ async def async_setup_entry(
 class PlejdSwitch(PlejdDeviceBaseEntity, SwitchEntity):
     """Representation of a Plejd switch."""
 
-    def __init__(self, device: dt.PlejdRelay) -> None:
+    def __init__(self, device: dt.PlejdRelay, site: PlejdSite) -> None:
         """Set up switch."""
         SwitchEntity.__init__(self)
-        PlejdDeviceBaseEntity.__init__(self, device)
+        PlejdDeviceBaseEntity.__init__(self, device, site)
         self.device: dt.PlejdRelay
 
     @property
@@ -54,10 +54,12 @@ class PlejdSwitch(PlejdDeviceBaseEntity, SwitchEntity):
 
     async def async_turn_on(self, **_) -> None:
         """Turn the switch on."""
+        await self._ensure_connected()
         await self.device.turn_on()
 
     async def async_turn_off(self, **_) -> None:
         """Turn the switch off."""
+        await self._ensure_connected()
         await self.device.turn_off()
 
 

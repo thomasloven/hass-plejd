@@ -6,7 +6,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.const import EntityCategory
 
 from .const import DOMAIN, MANUFACTURER
-from .plejd_site import dt
+from .plejd_site import dt, PlejdSite
 
 
 class PlejdDeviceBaseEntity(Entity):
@@ -15,12 +15,18 @@ class PlejdDeviceBaseEntity(Entity):
     _attr_has_entity_name = True
     _attr_name = None
 
-    def __init__(self, device: dt.PlejdDevice):
+    def __init__(self, device: dt.PlejdDevice, site: PlejdSite):
         """Set up entity."""
         super().__init__()
         self.device = device
+        self.site = site
         self.listener = None
         self._data = {}
+
+    async def _ensure_connected(self) -> None:
+        """Reconnect to mesh before sending a command if currently unavailable."""
+        if not self.available:
+            await self.site._reconnect()
 
     @property
     def device_info(self):

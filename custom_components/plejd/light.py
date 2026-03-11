@@ -20,7 +20,7 @@ async def async_setup_entry(
     @callback
     def async_add_light(device: dt.PlejdLight, site: PlejdSite) -> None:
         """Add light from Plejd."""
-        entity = PlejdLight(device)
+        entity = PlejdLight(device, site)
         async_add_entities([entity])
 
     site.register_platform_add_device_callback(
@@ -31,10 +31,10 @@ async def async_setup_entry(
 class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
     """Representation of a Plejd light."""
 
-    def __init__(self, device: dt.PlejdLight) -> None:
+    def __init__(self, device: dt.PlejdLight, site: PlejdSite) -> None:
         """Set up light."""
         LightEntity.__init__(self)
-        PlejdDeviceBaseEntity.__init__(self, device)
+        PlejdDeviceBaseEntity.__init__(self, device, site)
         self.device: dt.PlejdLight
 
         self._attr_supported_color_modes: set[ColorMode] = set()
@@ -77,8 +77,10 @@ class PlejdLight(PlejdDeviceBaseEntity, LightEntity):
         self, brightness: int | None = None, color_temp: int | None = None, **_
     ) -> None:
         """Turn the light on."""
+        await self._ensure_connected()
         await self.device.turn_on(brightness, color_temp)
 
     async def async_turn_off(self, **_) -> None:
         """Turn the light off."""
+        await self._ensure_connected()
         await self.device.turn_off()

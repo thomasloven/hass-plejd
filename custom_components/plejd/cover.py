@@ -21,7 +21,7 @@ async def async_setup_entry(
     @callback
     def async_add_cover(device: PlejdCover, site: PlejdSite) -> None:
         """Add light from Plejd."""
-        entity = PlejdCover(device)
+        entity = PlejdCover(device, site)
         async_add_entities([entity])
 
     site.register_platform_add_device_callback(
@@ -31,10 +31,10 @@ async def async_setup_entry(
 
 class PlejdCover(PlejdDeviceBaseEntity, CoverEntity):
 
-    def __init__(self, device: dt.PlejdCover) -> None:
+    def __init__(self, device: dt.PlejdCover, site: PlejdSite) -> None:
         """Set up light."""
         CoverEntity.__init__(self)
-        PlejdDeviceBaseEntity.__init__(self, device)
+        PlejdDeviceBaseEntity.__init__(self, device, site)
         self.device: PlejdCover
 
         self._attr_supported_features = (
@@ -71,15 +71,19 @@ class PlejdCover(PlejdDeviceBaseEntity, CoverEntity):
         return self._data.get("opening")
 
     async def async_open_cover(self, **kwargs: Any) -> None:
+        await self._ensure_connected()
         await self.device.open()
 
     async def async_close_cover(self, **kwargs: Any) -> None:
+        await self._ensure_connected()
         await self.device.close()
 
     async def async_stop_cover(self, **kwargs: Any) -> None:
+        await self._ensure_connected()
         await self.device.stop()
 
     async def async_set_cover_position(
         self, position: int | None = None, **kwargs: Any
     ) -> None:
+        await self._ensure_connected()
         await self.device.set_position(position)

@@ -28,7 +28,7 @@ async def async_setup_entry(
     @callback
     def async_add_climate(device: dt.PlejdThermostat, site: PlejdSite) -> None:
         """Add light from Plejd."""
-        entity = PlejdClimate(device)
+        entity = PlejdClimate(device, site)
         async_add_entities([entity])
 
     site.register_platform_add_device_callback(
@@ -56,10 +56,10 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
         HVACMode.HEAT,
     ]
 
-    def __init__(self, device: dt.PlejdThermostat) -> None:
+    def __init__(self, device: dt.PlejdThermostat, site: PlejdSite) -> None:
         """Set up climate entity."""
         ClimateEntity.__init__(self)
-        PlejdDeviceBaseEntity.__init__(self, device)
+        PlejdDeviceBaseEntity.__init__(self, device, site)
         self.device: dt.PlejdThermostat
 
         self.min_temp = self.device.limits.get("min", 7)
@@ -70,9 +70,11 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
         return not self._data.get("mode", 7) == dt.PlejdThermostat.MODE_SERVICE
 
     async def async_turn_on(self):
+        await self._ensure_connected()
         await self.device.turn_on()
 
     async def async_turn_off(self):
+        await self._ensure_connected()
         await self.device.turn_off()
 
     @property
@@ -102,6 +104,7 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
         return self._data.get("current", None)
 
     async def async_set_temperature(self, **kwargs):
+        await self._ensure_connected()
         if ATTR_TEMPERATURE in kwargs:
             await self.device.set_target_temp(kwargs[ATTR_TEMPERATURE])
 
@@ -126,6 +129,7 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
                 return ClimateConst.PRESET_NONE
 
     async def async_set_preset_mode(self, preset_mode):
+        await self._ensure_connected()
         mode = {
             ClimateConst.PRESET_AWAY: self.device.MODE_VACATION,
             ClimateConst.PRESET_BOOST: self.device.MODE_BOOST,
