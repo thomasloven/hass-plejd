@@ -1,38 +1,44 @@
 {
-    "name": "hass-plejd Dev",
-    "image": "thomasloven/hass-custom-devcontainer",
-    "postCreateCommand": "sudo -E container setup-dev",
-    "containerEnv": {
-      "DEVCONTAINER": "1",
-      "TZ": "Europe/Stockholm",
-      "PYTHONPATH": "/usr/src/homeassistant:/workspaces/hass-plejd/pyplejd"
-    },
-    "forwardPorts": [8123],
-    "mounts": [
-      "source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind",
-      "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/config/pyplejd,type=bind",
-      "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/usr/local/bin/pyplejd,type=bind"
-    ],
-    "customizations": {
-      "vscode": {
-        "extensions": [
-          "esbenp.prettier-vscode",
-          "ms-python.python",
-          "ms-python.black-formatter"
-        ],
-        "settings": {
-          "files.eol": "\n",
-          "editor.tabSize": 2,
-          "editor.formatOnPaste": false,
-          "editor.formatOnSave": true,
-          "editor.formatOnType": true,
-          "files.trimTrailingWhitespace": true,
-          "[python]": {
-            "editor.tabSize": 4,
-            "editor.defaultFormatter": "ms-python.black-formatter"
-          }
+  "name": "hass-plejd Dev",
+  "image": "thomasloven/hass-custom-devcontainer",
+  "postCreateCommand": "sudo -E container setup-dev",
+  "containerEnv": {
+    "DEVCONTAINER": "1",
+    "TZ": "Europe/Stockholm",
+    "PYTHONPATH": "/usr/src/homeassistant:/workspaces/hass-plejd/pyplejd"
+  },
+  "forwardPorts": [
+    8123
+  ],
+  "mounts": [
+    "source=/run/dbus,target=/run/dbus,readonly,type=bind", // Needed for bluetooth forwarding
+    "source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind",
+    "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/config/pyplejd,type=bind",
+    "source=${localWorkspaceFolder}/pyplejd/pyplejd,target=/usr/local/bin/pyplejd,type=bind"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "ms-python.python",
+        "ms-python.black-formatter"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "editor.tabSize": 2,
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": true,
+        "[python]": {
+          "editor.tabSize": 4,
+          "editor.defaultFormatter": "ms-python.black-formatter"
         }
       }
-    },
-    "runArgs": ["--network=host"]
+    }
+  },
+  "runArgs": [
+    "--privileged", // Needed for bluetooth forwarding
+    "--network=host"
+  ]
 }
