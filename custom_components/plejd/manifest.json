@@ -7,14 +7,23 @@
       "connectable": true
     }
   ],
-  "codeowners": ["@thomasloven"],
+  "codeowners": [
+    "@thomasloven"
+  ],
   "config_flow": true,
-  "dependencies": ["bluetooth_adapters"],
+  "dependencies": [
+    "bluetooth_adapters"
+  ],
   "documentation": "https://github.com/thomasloven/hass_plejd",
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/thomasloven/hass_plejd/issues",
-  "loggers": ["pyplejd"],
-  "requirements": ["pyplejd==0.20.6", "pydantic"],
-  "version": "0.20.6"
+  "loggers": [
+    "pyplejd"
+  ],
+  "requirements": [
+    "pyplejd==0.20.7",
+    "pydantic"
+  ],
+  "version": "0.20.7"
 }
