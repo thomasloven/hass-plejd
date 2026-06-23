@@ -24,7 +24,6 @@ from pyplejd import (
 from .const import DOMAIN
 from .plejd_entity import register_unknown_device
 
-
 _LOGGER = logging.getLogger(__name__)
 
 SITE_DATA_STORE_KEY = "plejd_site_data"
@@ -150,6 +149,8 @@ class PlejdSite:
             )
         )
 
+        self.manager.connection_monitor = self.connection_monitor
+
         self.started = True
 
         self.hass.async_create_task(self._ping())
@@ -175,6 +176,12 @@ class PlejdSite:
         data["blacklist"] = self.blacklist
         self.hass.config_entries.async_update_entry(self.config_entry, data=data)
         await self.manager.set_blacklist(self.blacklist)
+
+    def connection_monitor(self, connected):
+        if self.stopping:
+            return
+        if not connected:
+            self.hass.async_create_task(self._ping())
 
     def _discovered(
         self, service_info: BluetoothServiceInfoBleak, *_, connect: bool = True
