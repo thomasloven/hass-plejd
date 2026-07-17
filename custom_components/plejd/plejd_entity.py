@@ -121,7 +121,7 @@ def register_unknown_device(
     device_registry = dr.async_get(hass)
     device_registry.async_get_or_create(
         config_entry_id=config_entry_id,
-        identifiers={(DOMAIN, *device.device_identifier)},
+        identifiers={(DOMAIN, device.device_identifier)},
         manufacturer=MANUFACTURER,
         name=device.name,
         model=device.hardware,
