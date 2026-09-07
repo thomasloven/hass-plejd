@@ -34,7 +34,13 @@ class PlejdDeviceBaseEntity(Entity):
             "sw_version": str(self.device.firmware),
         }
         if not self.device.parent_identifier == self.device.device_identifier:
-            info["via_device"] = (DOMAIN, self.device.parent_identifier)
+            parent = dr.async_get(self.hass).async_get_device_by_identifier(
+                (DOMAIN, self.device.parent_identifier),
+                self.platform.config_entry.entry_id,
+            )
+            # Parent not registered (yet): leave any existing link untouched.
+            if parent is not None:
+                info["via_device_id"] = parent.id
         return info
 
     @property
