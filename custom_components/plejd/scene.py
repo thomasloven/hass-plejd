@@ -1,9 +1,14 @@
-from homeassistant.components.scene import Scene
+from datetime import timedelta
+
+from homeassistant.components.scene import BaseScene
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.util import Throttle
 from homeassistant.core import callback, HomeAssistant
 
 from .plejd_site import dt, get_plejd_site_from_config_entry, PlejdSite
 from .plejd_entity import PlejdDeviceBaseEntity
+
+SCENE_ACTIVATION_RATE_LIMIT = timedelta(seconds=2)
 
 
 async def async_setup_entry(
@@ -25,7 +30,7 @@ async def async_setup_entry(
     )
 
 
-class PlejdSceneEntity(PlejdDeviceBaseEntity, Scene):
+class PlejdSceneEntity(PlejdDeviceBaseEntity, BaseScene):
     """Representation of a Plejd scene."""
 
     _attr_has_entity_name = True
@@ -41,6 +46,14 @@ class PlejdSceneEntity(PlejdDeviceBaseEntity, Scene):
         """Return the name of the scene entity."""
         return self.device.name
 
-    async def async_activate(self, **_) -> None:
+    async def _async_activate(self, **_) -> None:
         """Activate the scene"""
         await self.device.activate()
+
+    @Throttle(SCENE_ACTIVATION_RATE_LIMIT)
+    @callback
+    def _handle_update(self, event) -> None:
+        """When scene is activated from Plejd."""
+        if event.get("triggered", False):
+            self._async_record_activation()
+            self.async_write_ha_state()
