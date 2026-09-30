@@ -8,6 +8,7 @@ custom_components/*/
 !custom_components/plejd
 **/__pycache__/
 !README.md
+!LICENSE
 !pyplejd
 !.devcontainer/
 !.vscode/
