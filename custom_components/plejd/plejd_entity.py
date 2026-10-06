@@ -1,5 +1,7 @@
 """Plejd entity helpers."""
 
+import logging
+
 from homeassistant.core import callback, HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers import device_registry as dr
@@ -7,6 +9,8 @@ from homeassistant.const import EntityCategory
 
 from .const import DOMAIN, MANUFACTURER
 from .plejd_site import dt
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def device_info(hass: HomeAssistant, device: dt.PlejdDevice, config_entry_id: str):
@@ -128,3 +132,41 @@ def register_unknown_device(
         config_entry_id=config_entry_id,
         **device_info(hass, device, config_entry_id),
     )
+
+
+@callback
+def migrate_device_registry(
+    hass: HomeAssistant, devices: list[dt.PlejdDevice], config_entry_id: str
+):
+    """Make sure the Bluetooth connection belongs to the primary device.
+
+    Earlier versions attached the Bluetooth connection of a multi-output unit
+    (DIM-02, REL-02, ...) to whichever output happened to carry the
+    diagnostic entities. The connection is now always registered on the
+    primary output's device, and Home Assistant refuses to register the same
+    connection twice within one config entry. Move it before the platforms
+    try to register their devices, instead of failing the whole setup.
+    """
+    registry = dr.async_get(hass)
+    for device in devices:
+        if not getattr(device, "is_primary", False):
+            continue
+        if not (ble_mac := getattr(device, "ble_mac", None)):
+            continue
+        connection = (dr.CONNECTION_BLUETOOTH, ble_mac)
+        owner = registry.async_get_device(connections={connection})
+        if owner is None:
+            continue
+        if (DOMAIN, device.device_identifier) in owner.identifiers:
+            continue
+        if config_entry_id not in owner.config_entries:
+            continue
+        _LOGGER.info(
+            "Moving Bluetooth connection %s from device '%s' to the primary device '%s'",
+            ble_mac,
+            owner.name_by_user or owner.name,
+            device.name,
+        )
+        registry.async_update_device(
+            owner.id, new_connections=owner.connections - {connection}
+        )

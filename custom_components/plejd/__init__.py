@@ -32,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     hass.data.setdefault(DOMAIN, {})
 
-    site = hass.data[DOMAIN][config_entry.entry_id] = PlejdSite(
+    site = PlejdSite(
         hass,
         config_entry,
         username=config_entry.data.get(CONF_USERNAME),
@@ -40,14 +40,25 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         siteId=config_entry.data.get(CONF_SITE_ID),
     )
 
-    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
-
+    # Fetch the site data before any platform is set up, so that a cloud or
+    # credential problem leaves nothing behind for the retry to trip over.
     try:
-        await site.start()
+        await site.load()
     except ConnectionError as err:
         raise ConfigEntryNotReady from err
     except AuthenticationError as err:
         raise ConfigEntryAuthFailed from err
+
+    hass.data[DOMAIN][config_entry.entry_id] = site
+
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+
+    try:
+        await site.start()
+    except Exception:
+        await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
+        hass.data[DOMAIN].pop(config_entry.entry_id, None)
+        raise
 
     config_entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, site.stop)
