@@ -74,8 +74,8 @@ class PlejdSite:
     ) -> None:
         self.add_device_callbacks[output_type].append(callback)
 
-    async def start(self) -> None:
-        """Setup and connect to plejd site."""
+    async def load(self) -> None:
+        """Load site data from cloud"""
         if not (site_data_cache := await self.store.async_load()) or not isinstance(
             site_data_cache, dict
         ):
@@ -86,6 +86,9 @@ class PlejdSite:
         await self.manager.init(cached_site_data)
 
         self.devices = self.manager.devices
+
+    async def start(self) -> None:
+        """Setup and connect to plejd site."""
         registered_hw = set()
 
         for device in self.devices:
