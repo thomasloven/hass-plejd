@@ -49,7 +49,7 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
         ClimateConst.PRESET_ECO,
         ClimateConst.PRESET_HOME,
     ]
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_target_temperature_step = 1.0
     _attr_hvac_modes = [
         HVACMode.OFF,
@@ -94,11 +94,11 @@ class PlejdClimate(PlejdDeviceBaseEntity, ClimateEntity):
             await self.async_turn_off()
 
     @property
-    def target_temperature(self) -> float:
+    def native_target_temperature(self) -> float:
         return self._data.get("target", None)
 
     @property
-    def current_temperature(self) -> float:
+    def native_current_temperature(self) -> float:
         return self._data.get("current", None)
 
     async def async_set_temperature(self, **kwargs):
