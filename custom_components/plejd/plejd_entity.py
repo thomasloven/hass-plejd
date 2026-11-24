@@ -27,9 +27,36 @@ def device_info(hass: HomeAssistant, device: dt.PlejdDevice, config_entry_id: st
         if parent is not None:
             info["via_device_id"] = parent.id
     else:
-        info["connections"] = {(dr.CONNECTION_BLUETOOTH, device.ble_mac)}
+        connection = (dr.CONNECTION_BLUETOOTH, device.ble_mac)
+        _release_stale_connection(hass, device, connection, config_entry_id)
+        info["connections"] = {connection}
+        # A former secondary output keeps its via link to the output that is now
+        # secondary, which would leave a via cycle in the registry.
+        info["via_device_id"] = None
 
     return info
+
+
+def _release_stale_connection(
+    hass: HomeAssistant,
+    device: dt.PlejdDevice,
+    connection: tuple[str, str],
+    config_entry_id: str,
+):
+    """Strip the BLE connection from another output of the same module.
+
+    The outputs of a multi-output module (DIM-02, REL-02, OUT-02) share one BLE
+    address, and the output that owns it can change between restarts. The previous
+    owner keeps the connection in the device registry, and the collision makes Home
+    Assistant reject the device that should own it now.
+    """
+    registry = dr.async_get(hass)
+    holder = registry.async_get_device_by_connection(connection, config_entry_id)
+    if holder is None or (DOMAIN, device.device_identifier) in holder.identifiers:
+        return
+    registry.async_update_device(
+        holder.id, new_connections=holder.connections - {connection}
+    )
 
 
 class PlejdDeviceBaseEntity(Entity):
